@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/alecthomas/participle/v2"
+	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,9 +13,31 @@ func parserTypeWithDefaultOptions(t interface{}) (*participle.Parser, error) {
 	return participle.Build(t, participle.Lexer(fileLexer), participle.Elide("Comment", "Whitespace", "CommentLine"))
 }
 
+var typeString map[lexer.TokenType]string
+
+func setupTypeTable() {
+	if len(typeString) == 0 {
+		typeString = make(map[lexer.TokenType]string)
+		for k, v := range fileLexer.Symbols() {
+			typeString[v] = k
+		}
+	}
+}
+
+func printTokens(in string, count int) {
+	setupTypeTable()
+	l, err := fileLexer.LexString("", in)
+	pp.Println(err)
+	t, _ := l.Next()
+	for i := 0; int(t.Type) != -1 && i < count; i++ {
+		pp.Println(typeString[t.Type] + " " + t.Value)
+		t, _ = l.Next()
+	}
+}
+
 func TestNumberRanges(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&NumberRange{})
 	assert.NoError(err)
@@ -48,14 +71,14 @@ func TestNumberRanges(t *testing.T) {
 	}
 }
 
-func TestRowLabel(t *testing.T) {
+func TestLabelString(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
-	parser, err := parserTypeWithDefaultOptions(&RowLabel{})
+	parser, err := parserTypeWithDefaultOptions(&LabelString{})
 	assert.NoError(err)
 
-	val := &RowLabel{}
+	val := &LabelString{}
 	expect := `"Twas brillig and the slithy toves."`
 	err = parser.ParseString("", expect, val)
 	assert.NoError(err)
@@ -65,7 +88,7 @@ func TestRowLabel(t *testing.T) {
 		pp.Println(val)
 	}
 
-	val = &RowLabel{}
+	val = &LabelString{}
 	expect = `S0mething_cool-ish`
 	err = parser.ParseString("", expect, val)
 	assert.NoError(err)
@@ -78,7 +101,7 @@ func TestRowLabel(t *testing.T) {
 
 func TestTableRow(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&TableRow{})
 	assert.NoError(err)
@@ -135,7 +158,7 @@ func TestTableRow(t *testing.T) {
 
 	// Shortest default.
 	val = &TableRow{}
-	err = parser.ParseString("", `d: "zzz"`, val)
+	err = parser.ParseString("", `Default: "zzz"`, val)
 	assert.NoError(err)
 	assert.True(val.Default)
 	if print {
@@ -144,7 +167,7 @@ func TestTableRow(t *testing.T) {
 
 	// Default as def and numric value.
 	val = &TableRow{}
-	err = parser.ParseString("", `def 6: "zzz"`, val)
+	err = parser.ParseString("", `Default 6: "zzz"`, val)
 	assert.NoError(err)
 	assert.True(val.Default)
 	if print {
@@ -153,7 +176,7 @@ func TestTableRow(t *testing.T) {
 
 	// Default and label.
 	val = &TableRow{}
-	err = parser.ParseString("", `default axes: "xyz"`, val)
+	err = parser.ParseString("", `Default axes: "xyz"`, val)
 	assert.NoError(err)
 	assert.True(val.Default)
 	if print {
@@ -181,13 +204,13 @@ func TestTableRow(t *testing.T) {
 
 func TestTableHeader(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&TableHeader{})
 	assert.NoError(err)
 
 	val := &TableHeader{}
-	err = parser.ParseString("", `t: table1`, val)
+	err = parser.ParseString("", `TableDef: table1`, val)
 	assert.NoError(err)
 	assert.Equal("table1", val.Name)
 	assert.Len(val.Tags, 0)
@@ -196,7 +219,7 @@ func TestTableHeader(t *testing.T) {
 	}
 
 	val = &TableHeader{}
-	err = parser.ParseString("", "T: table1 \n ~ author: franz", val)
+	err = parser.ParseString("", "TableDef: table1 \n ~ author: franz", val)
 	assert.NoError(err)
 	assert.Equal("table1", val.Name)
 	assert.Len(val.Tags, 1)
@@ -205,7 +228,7 @@ func TestTableHeader(t *testing.T) {
 	}
 
 	val = &TableHeader{}
-	err = parser.ParseString("", "T: table1 \n ~ author: franz \n ~ \"create date\": \"10/01/2001\"", val)
+	err = parser.ParseString("", "TableDef: table1 \n ~ author: franz \n ~ \"create date\": \"10/01/2001\"", val)
 	assert.NoError(err)
 	assert.Equal("table1", val.Name)
 	assert.Len(val.Tags, 2)
@@ -216,19 +239,19 @@ func TestTableHeader(t *testing.T) {
 
 func TestTable(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&Table{})
 	assert.NoError(err)
 
 	val := &Table{}
-	table := `t: footable
+	table := `TableDef: footable
 	~ license: free
 	1: "asdf"
 	"green"
 	w=3: {4}
 	foo: "once"
-	d: "red"`
+	Default: "red"`
 	err = parser.ParseString("", table, val)
 	assert.NoError(err)
 	assert.Equal("footable", val.Header.Name)
@@ -241,8 +264,8 @@ func TestTable(t *testing.T) {
 }
 
 func TestFileHeader(t *testing.T) {
-	print := false
-	t.Parallel()
+	print := true
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&FileHeader{})
 	assert.NoError(err)
@@ -250,7 +273,7 @@ func TestFileHeader(t *testing.T) {
 	val := &FileHeader{}
 	err = parser.ParseString("", `TablePack Main`, val)
 	assert.NoError(err)
-	assert.Equal("Main", val.RootPackageName)
+	assert.Equal("Main", val.Name.Names[0])
 	if print {
 		pp.Println(val)
 	}
@@ -258,21 +281,21 @@ func TestFileHeader(t *testing.T) {
 	val = &FileHeader{}
 	err = parser.ParseString("", `TablePack Foo.Bar.Baz.quz.z3d`, val)
 	assert.NoError(err)
-	assert.Equal("Foo", val.RootPackageName)
-	assert.Len(val.SubPackages, 4)
-	assert.Equal("z3d", val.SubPackages[3])
+	assert.Equal("Foo", val.Name.Names[0])
+	assert.Len(val.Name.Names, 5)
+	assert.Equal("z3d", val.Name.Names[4])
 	if print {
 		pp.Println(val)
 	}
 
 	val = &FileHeader{}
 	header := `TablePack garbo
-	import f"~/tables/1.tab"
-	IMPORT f"c:/blah/blerf"`
+	Import f"~/tables/1.tab"
+	Import f"c:/blah/blerf"`
 	err = parser.ParseString("", header, val)
 	assert.NoError(err)
-	assert.Equal("garbo", val.RootPackageName)
-	assert.Len(val.SubPackages, 0)
+	assert.Equal("garbo", val.Name.Names[0])
+	assert.Len(val.Name.Names, 1)
 	assert.Len(val.Imports, 2)
 	if print {
 		pp.Println(val)
@@ -281,7 +304,7 @@ func TestFileHeader(t *testing.T) {
 
 func TestTableFile(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&TableFile{})
 	assert.NoError(err)
@@ -289,7 +312,7 @@ func TestTableFile(t *testing.T) {
 	val := &TableFile{}
 	err = parser.ParseString("", `TablePack Main`, val)
 	assert.NoError(err)
-	assert.Equal("Main", val.Header.RootPackageName)
+	assert.Equal("Main", val.Header.Name.Names[0])
 	if print {
 		pp.Println(val)
 	}
@@ -297,7 +320,7 @@ func TestTableFile(t *testing.T) {
 	val = &TableFile{}
 	file := `TablePack Main
 
-	t: colors
+	TableDef: colors
 	"red"
 	"green"
 	# some note
@@ -305,18 +328,18 @@ func TestTableFile(t *testing.T) {
 	---
 
 
-	t: numbers
+	TableDef: numbers
 	~ size: "7"
 	~ "weight max": forty-eight
 	a: "One"
 	5: "two"
-	d: {3}
+	Default: {3}
 
 
 	`
 	err = parser.ParseString("", file, val)
 	assert.NoError(err)
-	assert.Equal("Main", val.Header.RootPackageName)
+	assert.Equal("Main", val.Header.Name.Names[0])
 	assert.Len(val.Tables, 2)
 	if print {
 		pp.Println(val)
@@ -324,22 +347,22 @@ func TestTableFile(t *testing.T) {
 
 	val = &TableFile{}
 	file = `TablePack quacko
-	import f"~/jeremy"
+	Import f"~/jeremy"
 
-	Table: colors
-	d w=4 1-5,8 red: "red"
+	TableDef: colors
+	Default w=4 1-5,8 red: "red"
 	"blue"
 
 	#----------
-	table: numbers
+	TableDef: numbers
 	~ size: "7"
 	~ "weight max": forty-eight
 	a: "One"
 	5: "two"
-	d: {3}`
+	Default: {3}`
 	err = parser.ParseString("", file, val)
 	assert.NoError(err)
-	assert.Equal("quacko", val.Header.RootPackageName)
+	assert.Equal("quacko", val.Header.Name.Names[0])
 	assert.Len(val.Tables, 2)
 	assert.Len(val.Tables[0].Rows, 2)
 	if print {
@@ -349,13 +372,13 @@ func TestTableFile(t *testing.T) {
 
 func TestRoll(t *testing.T) {
 	print := false
-	t.Parallel()
+	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&Roll{})
 	assert.NoError(err)
 
 	val := &Roll{}
-	err = parser.ParseString("", `3d8`, val)
+	err = parser.ParseString("", `3d8?`, val)
 	assert.NoError(err)
 	assert.Equal("3d8", val.RollDice)
 	if print {
@@ -363,7 +386,7 @@ func TestRoll(t *testing.T) {
 	}
 
 	val = &Roll{}
-	err = parser.ParseString("", `10d20h5.mode`, val)
+	err = parser.ParseString("", `10d20h5.mode?`, val)
 	assert.NoError(err)
 	assert.Equal("10d20", val.RollDice)
 	assert.Equal("h5", val.RollSubset)
@@ -373,7 +396,7 @@ func TestRoll(t *testing.T) {
 	}
 
 	val = &Roll{}
-	err = parser.ParseString("", `10d20.+1x2.-20x1`, val)
+	err = parser.ParseString("", `10d20.+1x2.-20x1?`, val)
 	assert.NoError(err)
 	assert.Equal("10d20", val.RollDice)
 	assert.Len(val.RollCountAggrs, 2)
@@ -381,4 +404,21 @@ func TestRoll(t *testing.T) {
 	if print {
 		pp.Println(val)
 	}
+}
+
+func TestExpr(t *testing.T) {
+	// print := false
+	// t.Parallel()
+	// assert := assert.New(t)
+	// parser, err := parserTypeWithDefaultOptions(&Expression{})
+	// assert.NoError(err)
+
+	// val := &Expression{}
+	// err = parser.ParseString("", `3d8`, val)
+	// assert.NoError(err)
+	// assert.Equal("3d8", val.RollDice)
+	// if print {
+	// 	pp.Println(val)
+	// }
+
 }

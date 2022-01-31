@@ -12,10 +12,9 @@ type TableFile struct {
 }
 
 type FileHeader struct {
-	Pos             lexer.Position
-	RootPackageName string             `parser:"PkgStart @TableName"`
-	SubPackages     []string           `parser:"(PkgDelimiter @TableName)*"`
-	Imports         []*ImportStatement `parser:"(EOL @@)*"`
+	Pos     lexer.Position
+	Name    *ExtendedTableName `parser:"PkgStart @@"`
+	Imports []*ImportStatement `parser:"(EOL @@)*"`
 }
 
 type ImportStatement struct {
@@ -37,17 +36,17 @@ type TableHeader struct {
 
 type Tag struct {
 	Pos   lexer.Position
-	Key   RowLabel `parser:"TagStart @@ TableDelimiter"`
-	Value RowLabel `parser:"@@"`
+	Key   LabelString `parser:"TagStart @@ TableDelimiter"`
+	Value LabelString `parser:"@@"`
 }
 
 type TableRow struct {
 	Pos     lexer.Position
-	Default bool       `parser:"(@Default?"`
-	Weight  string     `parser:"@WeightMarker?"`
-	Numbers *RangeList `parser:"@@?"`
-	Label   *RowLabel  `parser:"@@? ':')?"`
-	Values  []*RowItem `parser:"@@+"`
+	Default bool         `parser:"(@Default?"`
+	Weight  string       `parser:"@WeightMarker?"`
+	Numbers *RangeList   `parser:"@@?"`
+	Label   *LabelString `parser:"@@? ':')?"`
+	Values  []*RowItem   `parser:"@@+"`
 }
 
 type RowItem struct {
@@ -56,7 +55,7 @@ type RowItem struct {
 	Expression *Expression `parser:"| @@)(ExtendLine EOL)?"`
 }
 
-type RowLabel struct {
+type LabelString struct {
 	Pos     lexer.Position
 	Single  *string `parser:"@TableName"`
 	Escaped *string `parser:"| @String"`
@@ -77,67 +76,90 @@ type NumberRange struct {
 	Single int  `parser:"| @Number)"`
 }
 
-type Expression struct {
-	Pos   lexer.Position
-	Value string `parser:"'{' @Number '}'"`
-}
-
 type Roll struct {
 	Pos            lexer.Position
 	RollDice       string   `parser:"@Roll"`
 	RollSubset     string   `parser:"@RollSubset? ("`
 	RollFuncAggr   string   `parser:"@RollFuncAggr"`
-	RollCountAggrs []string `parser:"|(@RollCountAggr+))?"`
+	RollCountAggrs []string `parser:"|(@RollCountAggr+))? RollEnd"`
+}
+
+type Expression struct {
+	Pos   lexer.Position
+	Value *ValueExpr `parser:"ExprStart @@ ExprEnd"`
+}
+
+type Call struct {
+	Name   ExtendedTableName `parser:"@@ CallStart"`
+	Params []*ValueExpr      `parser:"@@ (ArgDelimiter @@)* CallEnd"`
+}
+
+type ValueExpr struct {
+	Roll   *Roll        `parser:"@@"`
+	Num    int          `parser:"| @Number"`
+	IntVal int          `parser:"| @Integer"`
+	Expr   *Expression  `parser:"| @@"`
+	Call   *Call        `parser:"| @@"`
+	Label  *LabelString `parser:"| @@"`
+}
+
+type ExtendedTableName struct {
+	Names []string `parser:" @TableName (PkgDelimiter @TableName)*"`
 }
 
 const (
 	NATURAL_NUMBER = `([1-9][0-9]*)`
 	WHOLE_NUMBER   = `(0|([1-9][0-9]*))`
 	INTEGER        = `(0|(-?[1-9][0-9]*))`
+	IDENTIFIER     = `[a-zA-Z][a-zA-Z0-9\-_]*`
 )
 
 var (
 	fileLexer = lexer.MustStateful(lexer.Rules{
 		"Root": []lexer.Rule{
-			{Name: "Default", Pattern: `d(ef(ault)?)?`},
+			{Name: "Comment", Pattern: `#.*$`},
+			{Name: "CommentLine", Pattern: `^[ \t]*#.*\r?\n`},
+			{Name: "Whitespace", Pattern: `[ \t]+`},
+			{Name: "Default", Pattern: `Default`},
 			{Name: "PkgStart", Pattern: `TablePack`},
 			{Name: "PkgDelimiter", Pattern: `\.`},
 			{Name: "WeightMarker", Pattern: `w=` + WHOLE_NUMBER},
 			{Name: "ExtendLine", Pattern: `->`},
 			{Name: "TableBarrier", Pattern: `--(-+)`},
-			{Name: "TableStart", Pattern: `[Tt](able)?:`},
-			{Name: "Import", Pattern: `(?i)import`},
+			{Name: "TableStart", Pattern: `TableDef:`},
+			{Name: "Import", Pattern: `Import`},
 			{Name: "FilePath", Pattern: `(?i)f"(([A-Z]:)|~|(\.\.?))/.*"`},
 			lexer.Include("Atomic"),
-			{Name: "ListDelimeter", Pattern: `,`},
+			{Name: "ListDelimiter", Pattern: `,`},
 			{Name: "TableDelimiter", Pattern: `:`},
 			{Name: "RangeDash", Pattern: `-`},
-			{Name: "TableCall", Pattern: `[Tt]\(`, Action: lexer.Push("TableCall")},
-			{Name: "Expr", Pattern: `{`, Action: lexer.Push("Expr")},
 			{Name: "EOL", Pattern: `\r?\n`},
-			{Name: "Comment", Pattern: `#.*$`},
-			{Name: "CommentLine", Pattern: `^[ \t]*#.*\r?\n`},
-			{Name: "Whitespace", Pattern: `[ \t]+`},
 			{Name: "TagStart", Pattern: `~`},
 		},
 		"Atomic": []lexer.Rule{
-			{Name: "TableName", Pattern: `[a-zA-Z][a-zA-Z0-9_\-]*`},
+			{Name: "TableName", Pattern: IDENTIFIER},
 			{Name: "Roll", Pattern: NATURAL_NUMBER + `d` + NATURAL_NUMBER, Action: lexer.Push("Roll")},
+			{Name: "CallStart", Pattern: `\(`, Action: lexer.Push("Call")},
+			{Name: "ExprStart", Pattern: `{`, Action: lexer.Push("Expr")},
 			{Name: "String", Pattern: `"(\\"|[^"])*"`},
 			{Name: "Number", Pattern: NATURAL_NUMBER},
+			{Name: "PackageDelimiter", Pattern: `\.`},
 		},
 		"Roll": []lexer.Rule{
 			{Name: "RollSubset", Pattern: `(l|h)` + NATURAL_NUMBER},
-			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode)`},
+			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode|roll)`},
 			{Name: "RollCountAggr", Pattern: `\.[+-]` + NATURAL_NUMBER + `(x` + NATURAL_NUMBER + `)?`},
-			{Name: "RollEnd", Pattern: `[ \t]+|$|(\r?\n)`, Action: lexer.Pop()},
+			{Name: "RollEnd", Pattern: `\?`, Action: lexer.Pop()},
 		},
 		"Expr": []lexer.Rule{
 			lexer.Include("Atomic"),
-			{Name: "ExprEnd", Pattern: `}`, Action: lexer.Pop()},
+			{Name: "ExprEnd", Pattern: `\}`, Action: lexer.Pop()},
 		},
-		"TableCall": []lexer.Rule{
-			{Name: "TableCallEnd", Pattern: `\)`, Action: lexer.Pop()},
+		"Call": []lexer.Rule{
+			lexer.Include("Atomic"),
+			{Name: "Integer", Pattern: INTEGER},
+			{Name: "CallEnd", Pattern: `\)`, Action: lexer.Pop()},
+			{Name: "ArgDelimiter", Pattern: `,`},
 		},
 	})
 )
