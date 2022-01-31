@@ -19,7 +19,8 @@ type FileHeader struct {
 
 type ImportStatement struct {
 	Pos      lexer.Position
-	FileName string "Import @FilePath"
+	FileName string             `parser:"Import @FilePath"`
+	Alias    *ExtendedTableName `parser:"(PackAlias @@)?"`
 }
 
 type Table struct {
@@ -67,7 +68,7 @@ type RangeList struct {
 	Rest  []*NumberRange `parser:"(','@@)*"`
 }
 
-// NumberRange represents a single number ror a range.
+// NumberRange represents a single number or a range.
 //
 type NumberRange struct {
 	Pos    lexer.Position
@@ -90,15 +91,15 @@ type Expression struct {
 }
 
 type Call struct {
-	Name   ExtendedTableName `parser:"@@ CallStart"`
-	Params []*ValueExpr      `parser:"@@ (ArgDelimiter @@)* CallEnd"`
+	IsTable bool              `parser:"@TableCallSignal?"`
+	Name    ExtendedTableName `parser:"@@ CallStart"`
+	Params  []*ValueExpr      `parser:"@@? (ArgDelimiter @@)* CallEnd"`
 }
 
 type ValueExpr struct {
 	Roll   *Roll        `parser:"@@"`
 	Num    int          `parser:"| @Number"`
 	IntVal int          `parser:"| @Integer"`
-	Expr   *Expression  `parser:"| @@"`
 	Call   *Call        `parser:"| @@"`
 	Label  *LabelString `parser:"| @@"`
 }
@@ -117,18 +118,16 @@ const (
 var (
 	fileLexer = lexer.MustStateful(lexer.Rules{
 		"Root": []lexer.Rule{
-			{Name: "Comment", Pattern: `#.*$`},
-			{Name: "CommentLine", Pattern: `^[ \t]*#.*\r?\n`},
-			{Name: "Whitespace", Pattern: `[ \t]+`},
+			lexer.Include("Whitespace"),
 			{Name: "Default", Pattern: `Default`},
-			{Name: "PkgStart", Pattern: `TablePack`},
-			{Name: "PkgDelimiter", Pattern: `\.`},
+			{Name: "PkgStart", Pattern: `TablePack:`},
+			{Name: "TableStart", Pattern: `TableDef:`},
+			{Name: "Import", Pattern: `Import:`},
+			{Name: "PackAlias", Pattern: `As:`},
 			{Name: "WeightMarker", Pattern: `w=` + WHOLE_NUMBER},
 			{Name: "ExtendLine", Pattern: `->`},
 			{Name: "TableBarrier", Pattern: `--(-+)`},
-			{Name: "TableStart", Pattern: `TableDef:`},
-			{Name: "Import", Pattern: `Import`},
-			{Name: "FilePath", Pattern: `(?i)f"(([A-Z]:)|~|(\.\.?))/.*"`},
+			{Name: "FilePath", Pattern: `f\"(([A-Za-z]:)|~|(\.\.?))?/.*\"`},
 			lexer.Include("Atomic"),
 			{Name: "ListDelimiter", Pattern: `,`},
 			{Name: "TableDelimiter", Pattern: `:`},
@@ -143,7 +142,8 @@ var (
 			{Name: "ExprStart", Pattern: `{`, Action: lexer.Push("Expr")},
 			{Name: "String", Pattern: `"(\\"|[^"])*"`},
 			{Name: "Number", Pattern: NATURAL_NUMBER},
-			{Name: "PackageDelimiter", Pattern: `\.`},
+			{Name: "TableCallSignal", Pattern: `\!`},
+			{Name: "PkgDelimiter", Pattern: `\.`},
 		},
 		"Roll": []lexer.Rule{
 			{Name: "RollSubset", Pattern: `(l|h)` + NATURAL_NUMBER},
@@ -152,14 +152,25 @@ var (
 			{Name: "RollEnd", Pattern: `\?`, Action: lexer.Pop()},
 		},
 		"Expr": []lexer.Rule{
+			lexer.Include("Whitespace"),
 			lexer.Include("Atomic"),
+			lexer.Include("ExprValues"),
 			{Name: "ExprEnd", Pattern: `\}`, Action: lexer.Pop()},
 		},
 		"Call": []lexer.Rule{
+			lexer.Include("Whitespace"),
 			lexer.Include("Atomic"),
-			{Name: "Integer", Pattern: INTEGER},
+			lexer.Include("ExprValues"),
 			{Name: "CallEnd", Pattern: `\)`, Action: lexer.Pop()},
 			{Name: "ArgDelimiter", Pattern: `,`},
+		},
+		"Whitespace": []lexer.Rule{
+			{Name: "Comment", Pattern: `#.*$`},
+			{Name: "CommentLine", Pattern: `^[ \t]*#.*\r?\n`},
+			{Name: "Whitespace", Pattern: `[ \t]+`},
+		},
+		"ExprValues": []lexer.Rule{
+			{Name: "Integer", Pattern: INTEGER},
 		},
 	})
 )

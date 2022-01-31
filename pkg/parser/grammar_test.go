@@ -264,14 +264,14 @@ func TestTable(t *testing.T) {
 }
 
 func TestFileHeader(t *testing.T) {
-	print := true
+	print := false
 	// t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&FileHeader{})
 	assert.NoError(err)
 
 	val := &FileHeader{}
-	err = parser.ParseString("", `TablePack Main`, val)
+	err = parser.ParseString("", `TablePack: Main`, val)
 	assert.NoError(err)
 	assert.Equal("Main", val.Name.Names[0])
 	if print {
@@ -279,7 +279,7 @@ func TestFileHeader(t *testing.T) {
 	}
 
 	val = &FileHeader{}
-	err = parser.ParseString("", `TablePack Foo.Bar.Baz.quz.z3d`, val)
+	err = parser.ParseString("", `TablePack: Foo.Bar.Baz.quz.z3d`, val)
 	assert.NoError(err)
 	assert.Equal("Foo", val.Name.Names[0])
 	assert.Len(val.Name.Names, 5)
@@ -289,14 +289,29 @@ func TestFileHeader(t *testing.T) {
 	}
 
 	val = &FileHeader{}
-	header := `TablePack garbo
-	Import f"~/tables/1.tab"
-	Import f"c:/blah/blerf"`
+	header := `TablePack: garbo
+	Import: f"~/tables/1.tab"
+	Import: f"c:/blah/blerf"`
 	err = parser.ParseString("", header, val)
 	assert.NoError(err)
 	assert.Equal("garbo", val.Name.Names[0])
 	assert.Len(val.Name.Names, 1)
 	assert.Len(val.Imports, 2)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &FileHeader{}
+	header = `TablePack: flux-capacitor.car
+	Import: f"/marty/Mcfly" As: marty
+	Import: f"../doc/file.file" As: doc.Fu7ur3_space`
+	err = parser.ParseString("", header, val)
+	assert.NoError(err)
+	assert.Equal("flux-capacitor", val.Name.Names[0])
+	assert.Len(val.Name.Names, 2)
+	assert.Len(val.Imports, 2)
+	assert.Equal("marty", val.Imports[0].Alias.Names[0])
+	assert.Len(val.Imports[1].Alias.Names, 2)
 	if print {
 		pp.Println(val)
 	}
@@ -310,7 +325,7 @@ func TestTableFile(t *testing.T) {
 	assert.NoError(err)
 
 	val := &TableFile{}
-	err = parser.ParseString("", `TablePack Main`, val)
+	err = parser.ParseString("", `TablePack: Main`, val)
 	assert.NoError(err)
 	assert.Equal("Main", val.Header.Name.Names[0])
 	if print {
@@ -318,7 +333,7 @@ func TestTableFile(t *testing.T) {
 	}
 
 	val = &TableFile{}
-	file := `TablePack Main
+	file := `TablePack: Main
 
 	TableDef: colors
 	"red"
@@ -346,8 +361,8 @@ func TestTableFile(t *testing.T) {
 	}
 
 	val = &TableFile{}
-	file = `TablePack quacko
-	Import f"~/jeremy"
+	file = `TablePack: quacko
+	Import: f"~/jeremy"
 
 	TableDef: colors
 	Default w=4 1-5,8 red: "red"
@@ -407,18 +422,84 @@ func TestRoll(t *testing.T) {
 }
 
 func TestExpr(t *testing.T) {
-	// print := false
-	// t.Parallel()
-	// assert := assert.New(t)
-	// parser, err := parserTypeWithDefaultOptions(&Expression{})
-	// assert.NoError(err)
+	print := false
+	t.Parallel()
+	assert := assert.New(t)
+	parser, err := parserTypeWithDefaultOptions(&Expression{})
+	assert.NoError(err)
 
-	// val := &Expression{}
-	// err = parser.ParseString("", `3d8`, val)
-	// assert.NoError(err)
-	// assert.Equal("3d8", val.RollDice)
-	// if print {
-	// 	pp.Println(val)
-	// }
+	val := &Expression{}
+	err = parser.ParseString("", `{ 4}`, val)
+	assert.NoError(err)
+	assert.Equal(4, val.Value.Num)
+	if print {
+		pp.Println(val)
+	}
 
+	val = &Expression{}
+	err = parser.ParseString("", `{-8 }`, val)
+	assert.NoError(err)
+	assert.Equal(-8, val.Value.IntVal)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ foo }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Label)
+	assert.Equal("foo", *val.Value.Label.Single)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ "hello World!" }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Label)
+	assert.Equal(`"hello World!"`, *val.Value.Label.Escaped)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ add(3, 6) }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Call)
+	assert.False(val.Value.Call.IsTable)
+	assert.Equal("add", val.Value.Call.Name.Names[0])
+	assert.Len(val.Value.Call.Params, 2)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ !color() }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Call)
+	assert.True(val.Value.Call.IsTable)
+	assert.Equal("color", val.Value.Call.Name.Names[0])
+	assert.Len(val.Value.Call.Params, 0)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ 1d3? }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Roll)
+	assert.Equal("1d3", val.Value.Roll.RollDice)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	err = parser.ParseString("", `{ add( !primes(), 3, !test(weight, 3d12.+12x1?)) }`, val)
+	assert.NoError(err)
+	assert.NotNil(val.Value.Call)
+	assert.False(val.Value.Call.IsTable)
+	assert.Len(val.Value.Call.Params, 3)
+	if print {
+		pp.Println(val)
+	}
 }
