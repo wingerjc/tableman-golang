@@ -503,3 +503,34 @@ func TestExpr(t *testing.T) {
 		pp.Println(val)
 	}
 }
+
+func TestExprVars(t *testing.T) {
+	print := false
+	t.Parallel()
+	assert := assert.New(t)
+	parser, err := parserTypeWithDefaultOptions(&Expression{})
+	assert.NoError(err)
+
+	val := &Expression{}
+	strVal := `{ @foo=6; 4}`
+	err = parser.ParseString("", strVal, val)
+	assert.NoError(err)
+	assert.Len(val.Vars, 1)
+	assert.Equal("foo", val.Vars[0].VarName.Name)
+	assert.Equal(6, val.Vars[0].AssignedValue.Num)
+	assert.Equal(4, val.Value.Num)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	strVal = `{ @one="One", @Second-Thing="two"; @Second-Thing }`
+	err = parser.ParseString("", strVal, val)
+	assert.NoError(err)
+	assert.Len(val.Vars, 2)
+	assert.Equal("\"One\"", *val.Vars[0].AssignedValue.Label.Escaped)
+	assert.Equal("Second-Thing", val.Value.Variable.Name)
+	if print {
+		pp.Println(val)
+	}
+}

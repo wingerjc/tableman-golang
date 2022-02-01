@@ -87,23 +87,33 @@ type Roll struct {
 
 type Expression struct {
 	Pos   lexer.Position
-	Value *ValueExpr `parser:"ExprStart @@ ExprEnd"`
+	Vars  []*VariableDef `parser:"ExprStart (@@ (ListDelimiter @@)* EndVarList)?"`
+	Value *ValueExpr     `parser:"@@ ExprEnd"`
+}
+
+type VariableDef struct {
+	VarName       *VarName   `parser:"@@ VarAssign"`
+	AssignedValue *ValueExpr `parser:"@@"`
 }
 
 type Call struct {
 	IsTable bool              `parser:"@TableCallSignal?"`
 	Name    ExtendedTableName `parser:"@@ CallStart"`
-	Params  []*ValueExpr      `parser:"@@? (ArgDelimiter @@)* CallEnd"`
+	Params  []*ValueExpr      `parser:"@@? (ListDelimiter @@)* CallEnd"`
 }
 
 type ValueExpr struct {
-	Roll   *Roll        `parser:"@@"`
-	Num    int          `parser:"| @Number"`
-	IntVal int          `parser:"| @Integer"`
-	Call   *Call        `parser:"| @@"`
-	Label  *LabelString `parser:"| @@"`
+	Roll     *Roll        `parser:"@@"`
+	Num      int          `parser:"| @Number"`
+	IntVal   int          `parser:"| @Integer"`
+	Call     *Call        `parser:"| @@"`
+	Label    *LabelString `parser:"| @@"`
+	Variable *VarName     `parser:"| @@"`
 }
 
+type VarName struct {
+	Name string `parser:"VarPrefix @TableName"`
+}
 type ExtendedTableName struct {
 	Names []string `parser:" @TableName (PkgDelimiter @TableName)*"`
 }
@@ -129,7 +139,6 @@ var (
 			{Name: "TableBarrier", Pattern: `--(-+)`},
 			{Name: "FilePath", Pattern: `f\"(([A-Za-z]:)|~|(\.\.?))?/.*\"`},
 			lexer.Include("Atomic"),
-			{Name: "ListDelimiter", Pattern: `,`},
 			{Name: "TableDelimiter", Pattern: `:`},
 			{Name: "RangeDash", Pattern: `-`},
 			{Name: "EOL", Pattern: `\r?\n`},
@@ -143,7 +152,9 @@ var (
 			{Name: "String", Pattern: `"(\\"|[^"])*"`},
 			{Name: "Number", Pattern: NATURAL_NUMBER},
 			{Name: "TableCallSignal", Pattern: `\!`},
+			{Name: "VarPrefix", Pattern: `@`},
 			{Name: "PkgDelimiter", Pattern: `\.`},
+			{Name: "ListDelimiter", Pattern: `,`},
 		},
 		"Roll": []lexer.Rule{
 			{Name: "RollSubset", Pattern: `(l|h)` + NATURAL_NUMBER},
@@ -155,6 +166,8 @@ var (
 			lexer.Include("Whitespace"),
 			lexer.Include("Atomic"),
 			lexer.Include("ExprValues"),
+			{Name: "VarAssign", Pattern: `=`},
+			{Name: "EndVarList", Pattern: `;`},
 			{Name: "ExprEnd", Pattern: `\}`, Action: lexer.Pop()},
 		},
 		"Call": []lexer.Rule{
@@ -162,7 +175,6 @@ var (
 			lexer.Include("Atomic"),
 			lexer.Include("ExprValues"),
 			{Name: "CallEnd", Pattern: `\)`, Action: lexer.Pop()},
-			{Name: "ArgDelimiter", Pattern: `,`},
 		},
 		"Whitespace": []lexer.Rule{
 			{Name: "Comment", Pattern: `#.*$`},
