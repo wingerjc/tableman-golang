@@ -422,7 +422,7 @@ func TestRoll(t *testing.T) {
 }
 
 func TestExpr(t *testing.T) {
-	print := false
+	print := true
 	t.Parallel()
 	assert := assert.New(t)
 	parser, err := parserTypeWithDefaultOptions(&Expression{})
@@ -463,7 +463,8 @@ func TestExpr(t *testing.T) {
 	}
 
 	val = &Expression{}
-	err = parser.ParseString("", `{ add(3, 6) }`, val)
+	strVal := "{ add( \n\t3,\r\n	\t6) }"
+	err = parser.ParseString("", strVal, val)
 	assert.NoError(err)
 	assert.NotNil(val.Value.Call)
 	assert.False(val.Value.Call.IsTable)
@@ -525,6 +526,17 @@ func TestExprVars(t *testing.T) {
 
 	val = &Expression{}
 	strVal = `{ @one="One", @Second-Thing="two"; @Second-Thing }`
+	err = parser.ParseString("", strVal, val)
+	assert.NoError(err)
+	assert.Len(val.Vars, 2)
+	assert.Equal("\"One\"", *val.Vars[0].AssignedValue.Label.Escaped)
+	assert.Equal("Second-Thing", val.Value.Variable.Name)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Expression{}
+	strVal = "{\n\t @one=\"One\",\r\n @Second-Thing=\"two\";\t\n @Second-Thing }"
 	err = parser.ParseString("", strVal, val)
 	assert.NoError(err)
 	assert.Len(val.Vars, 2)

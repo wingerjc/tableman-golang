@@ -87,7 +87,7 @@ type Roll struct {
 
 type Expression struct {
 	Pos   lexer.Position
-	Vars  []*VariableDef `parser:"ExprStart (@@ (ListDelimiter @@)* EndVarList)?"`
+	Vars  []*VariableDef `parser:"ExprStart EOL? (@@ (ListDelimiter EOL? @@)* EndVarList EOL?)?"`
 	Value *ValueExpr     `parser:"@@ ExprEnd"`
 }
 
@@ -98,8 +98,8 @@ type VariableDef struct {
 
 type Call struct {
 	IsTable bool              `parser:"@TableCallSignal?"`
-	Name    ExtendedTableName `parser:"@@ CallStart"`
-	Params  []*ValueExpr      `parser:"@@? (ListDelimiter @@)* CallEnd"`
+	Name    ExtendedTableName `parser:"@@ CallStart EOL?"`
+	Params  []*ValueExpr      `parser:"@@? (ListDelimiter EOL? @@)* CallEnd"`
 }
 
 type ValueExpr struct {
@@ -141,7 +141,6 @@ var (
 			lexer.Include("Atomic"),
 			{Name: "TableDelimiter", Pattern: `:`},
 			{Name: "RangeDash", Pattern: `-`},
-			{Name: "EOL", Pattern: `\r?\n`},
 			{Name: "TagStart", Pattern: `~`},
 		},
 		"Atomic": []lexer.Rule{
@@ -155,6 +154,7 @@ var (
 			{Name: "VarPrefix", Pattern: `@`},
 			{Name: "PkgDelimiter", Pattern: `\.`},
 			{Name: "ListDelimiter", Pattern: `,`},
+			{Name: "EOL", Pattern: `\r?\n`},
 		},
 		"Roll": []lexer.Rule{
 			{Name: "RollSubset", Pattern: `(l|h)` + NATURAL_NUMBER},
