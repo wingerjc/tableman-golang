@@ -194,3 +194,11 @@ func GetParser() (*participle.Parser, error) {
 		participle.Elide("Comment", "Whitespace", "CommentLine"),
 	)
 }
+
+func GetExpressionParser() (*participle.Parser, error) {
+	return participle.Build(
+		&Expression{},
+		participle.Lexer(fileLexer),
+		participle.Elide("Comment", "Whitespace", "CommentLine"),
+	)
+}
