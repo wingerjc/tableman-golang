@@ -431,7 +431,7 @@ func TestExpr(t *testing.T) {
 	val := &Expression{}
 	err = parser.ParseString("", `{ 4}`, val)
 	assert.NoError(err)
-	assert.Equal(4, val.Value.Num)
+	assert.Equal(4, *val.Value.Num)
 	if print {
 		pp.Println(val)
 	}
@@ -439,7 +439,7 @@ func TestExpr(t *testing.T) {
 	val = &Expression{}
 	err = parser.ParseString("", `{-8 }`, val)
 	assert.NoError(err)
-	assert.Equal(-8, val.Value.IntVal)
+	assert.Equal(-8, *val.Value.Num)
 	if print {
 		pp.Println(val)
 	}
@@ -518,8 +518,8 @@ func TestExprVars(t *testing.T) {
 	assert.NoError(err)
 	assert.Len(val.Vars, 1)
 	assert.Equal("foo", val.Vars[0].VarName.Name)
-	assert.Equal(6, val.Vars[0].AssignedValue.Num)
-	assert.Equal(4, val.Value.Num)
+	assert.Equal(6, *val.Vars[0].AssignedValue.Num)
+	assert.Equal(4, *val.Value.Num)
 	if print {
 		pp.Println(val)
 	}

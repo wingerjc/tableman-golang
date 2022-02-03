@@ -5,6 +5,16 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+const (
+	NONE_EXPR_T  = ValueExprType(0)
+	ROLL_EXPR_T  = ValueExprType(1)
+	LABEL_EXPR_T = ValueExprType(2)
+	NUM_EXPR_T   = ValueExprType(3)
+	TABLE_EXPR_T = ValueExprType(4)
+	FUNC_EXPR_T  = ValueExprType(5)
+	VAR_EXPR_T   = ValueExprType(6)
+)
+
 type TableFile struct {
 	Pos    lexer.Position
 	Header *FileHeader `parser:"EOL* @@"`
@@ -104,11 +114,34 @@ type Call struct {
 
 type ValueExpr struct {
 	Roll     *Roll        `parser:"@@"`
-	Num      int          `parser:"| @Number"`
-	IntVal   int          `parser:"| @Integer"`
+	Num      *int         `parser:"| (@Number | @Integer)"`
 	Call     *Call        `parser:"| @@"`
 	Label    *LabelString `parser:"| @@"`
 	Variable *VarName     `parser:"| @@"`
+	exprType ValueExprType
+}
+
+type ValueExprType int
+
+func (v *ValueExpr) GetType() ValueExprType {
+	if v.exprType != NONE_EXPR_T {
+		return v.exprType
+	} else if v.Roll != nil {
+		v.exprType = ROLL_EXPR_T
+	} else if v.Num != nil {
+		v.exprType = NUM_EXPR_T
+	} else if v.Label != nil {
+		v.exprType = VAR_EXPR_T
+	} else if v.Call != nil {
+		if v.Call.IsTable {
+			v.exprType = TABLE_EXPR_T
+		} else {
+			v.exprType = FUNC_EXPR_T
+		}
+	} else if v.Variable != nil {
+		v.exprType = VAR_EXPR_T
+	}
+	return v.exprType
 }
 
 type VarName struct {
