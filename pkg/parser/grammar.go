@@ -72,6 +72,18 @@ type LabelString struct {
 	Escaped *string `parser:"| @String"`
 }
 
+func (l *LabelString) String() string {
+	if l.Single == nil {
+		sLen := len(*l.Escaped)
+		return (*l.Escaped)[1 : sLen-1]
+	}
+	return *l.Single
+}
+
+func (l *LabelString) IsLabel() bool {
+	return l.Single == nil
+}
+
 type RangeList struct {
 	Pos   lexer.Position
 	First *NumberRange   `parser:"@@"`
@@ -131,7 +143,7 @@ func (v *ValueExpr) GetType() ValueExprType {
 	} else if v.Num != nil {
 		v.exprType = NUM_EXPR_T
 	} else if v.Label != nil {
-		v.exprType = VAR_EXPR_T
+		v.exprType = LABEL_EXPR_T
 	} else if v.Call != nil {
 		if v.Call.IsTable {
 			v.exprType = TABLE_EXPR_T
@@ -220,18 +232,50 @@ var (
 	})
 )
 
-func GetParser() (*participle.Parser, error) {
-	return participle.Build(
+type TableFileParser struct {
+	p *participle.Parser
+}
+
+func (t *TableFileParser) Parse(code string) (*TableFile, error) {
+	res := &TableFile{}
+	err := t.p.ParseString("", code, res)
+	return res, err
+}
+
+func GetParser() (*TableFileParser, error) {
+	p, err := participle.Build(
 		&TableFile{},
 		participle.Lexer(fileLexer),
 		participle.Elide("Comment", "Whitespace", "CommentLine"),
 	)
+	if err != nil {
+		return nil, err
+	}
+	return &TableFileParser{
+		p: p,
+	}, nil
 }
 
-func GetExpressionParser() (*participle.Parser, error) {
-	return participle.Build(
+type ExpressionParser struct {
+	p *participle.Parser
+}
+
+func (e *ExpressionParser) Parse(code string) (*Expression, error) {
+	res := &Expression{}
+	err := e.p.ParseString("", code, res)
+	return res, err
+}
+
+func GetExpressionParser() (*ExpressionParser, error) {
+	p, err := participle.Build(
 		&Expression{},
 		participle.Lexer(fileLexer),
 		participle.Elide("Comment", "Whitespace", "CommentLine"),
 	)
+	if err != nil {
+		return nil, err
+	}
+	return &ExpressionParser{
+		p: p,
+	}, nil
 }

@@ -1,14 +1,13 @@
 package compiler
 
 import (
-	"github.com/alecthomas/participle/v2"
 	"github.com/wingerjc/tableman-golang/pkg/parser"
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
 type Compiler struct {
-	parser     *participle.Parser
-	exprParser *participle.Parser
+	parser     *parser.TableFileParser
+	exprParser *parser.ExpressionParser
 }
 
 func NewCompiler() (*Compiler, error) {
@@ -74,8 +73,7 @@ func (c *Compiler) compileString(code string) (*program.TablePack, []error) {
 }
 
 func (c *Compiler) parseString(code string) (*parser.TableFile, error) {
-	result := &parser.TableFile{}
-	err := c.parser.ParseString("", code, result)
+	result, err := c.parser.Parse(code)
 	if err != nil {
 		return nil, err
 	}

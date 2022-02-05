@@ -5,6 +5,22 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
+func CompileExpression(node *parser.Expression) (program.Evallable, error) {
+	vars := make(map[string]program.Evallable)
+	for _, v := range node.Vars {
+		expr, err := CompileValueExpr(v.AssignedValue)
+		if err != nil {
+			return nil, err
+		}
+		vars[v.VarName.Name] = expr
+	}
+	res, err := CompileValueExpr(node.Value)
+	if err != nil {
+		return nil, err
+	}
+	return program.NewExpression(vars, res), nil
+}
+
 func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
 	switch node.GetType() {
 	case parser.FUNC_EXPR_T:
@@ -15,6 +31,10 @@ func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
 		return program.NewFunction(node.Call.Name.Names[0], params)
 	case parser.NUM_EXPR_T:
 		return program.NewNumber(*node.Num), nil
+	case parser.LABEL_EXPR_T:
+		return program.NewString(node.Label.String(), node.Label.IsLabel()), nil
+	case parser.VAR_EXPR_T:
+		return program.NewVariable(node.Variable.Name), nil
 	}
 	return nil, nil
 }

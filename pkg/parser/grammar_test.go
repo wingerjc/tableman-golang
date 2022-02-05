@@ -495,11 +495,11 @@ func TestExpr(t *testing.T) {
 	}
 
 	val = &Expression{}
-	err = parser.ParseString("", `{ add( !primes(), 3, !test(weight, 3d12.+12x1?)) }`, val)
+	err = parser.ParseString("", `{ add( !primes(), 3, !test(weight, 3d12.+12x1?), oops) }`, val)
 	assert.NoError(err)
 	assert.NotNil(val.Value.Call)
 	assert.False(val.Value.Call.IsTable)
-	assert.Len(val.Value.Call.Params, 3)
+	assert.Len(val.Value.Call.Params, 4)
 	if print {
 		pp.Println(val)
 	}

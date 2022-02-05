@@ -62,13 +62,6 @@ type Table struct {
 type TableRow struct {
 }
 
-type Expression struct {
-}
-
-func (e *Expression) Eval() ExpressionEval {
-	return nil
-}
-
 type ResultType int
 
 type ExpressionResult struct {

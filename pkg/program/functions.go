@@ -6,13 +6,34 @@ import (
 
 var (
 	FUNCTION_LIST = map[string]*FunctionDef{
-		"add": {funcName: "add", resolve: addResolve, verifyParam: addVerify},
-		"sum": {funcName: "sum", resolve: addResolve, verifyParam: addVerify},
+		"add": {
+			funcName:    "add",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     addResolve,
+			verifyParam: onlyIntVerify,
+		},
+		"sum": {
+			funcName:    "sum",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     addResolve,
+			verifyParam: onlyIntVerify,
+		},
+		"sub": {
+			funcName:    "sub",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     subResolve,
+			verifyParam: onlyIntVerify,
+		},
 	}
 )
 
 type FunctionDef struct {
 	funcName    string
+	minParams   int
+	maxParams   int
 	resolve     func([]*ExpressionResult) (*ExpressionResult, error)
 	verifyParam func(ResultType, int) bool
 }
@@ -25,7 +46,20 @@ type GenericFunction struct {
 func NewFunction(name string, params []Evallable) (Evallable, error) {
 	config, ok := FUNCTION_LIST[name]
 	if !ok {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("could not find function '%s'", name)
+	}
+	if config.minParams > len(params) {
+		return nil, fmt.Errorf("too few params (%d) for function '%s', expected at least %d",
+			len(params),
+			config.funcName,
+			config.minParams,
+		)
+	}
+	if config.maxParams >= 0 && config.maxParams < len(params) {
+		return nil, fmt.Errorf("too many params (%d) for function '%s'",
+			len(params),
+			config.funcName,
+		)
 	}
 	return &GenericFunction{
 		params: params,
@@ -63,7 +97,11 @@ func (g *EvalGenericFunc) Next() ExpressionEval {
 
 func (g *EvalGenericFunc) Provide(res *ExpressionResult) error {
 	if !g.funcDef.config.verifyParam(res.resultType, g.index) {
-		return fmt.Errorf("could not execute %s, wrong type for parameter %d", g.funcDef.config.funcName, g.index+1)
+		return fmt.Errorf("could not execute %s, wrong type for parameter %d in function '%s'",
+			g.funcDef.config.funcName,
+			g.index+1,
+			g.funcDef.config.funcName,
+		)
 	}
 	g.vals[g.index] = res
 	g.index++
@@ -76,19 +114,20 @@ func (g *EvalGenericFunc) Resolve() (*ExpressionResult, error) {
 
 func addResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 	sum := 0
-	for i, x := range results {
-		if x.resultType != INT_RESULT {
-			return nil, fmt.Errorf(
-				"illegal type for 'add' at parameter %d, should be a number, got %s",
-				i,
-				x.StringVal(),
-			)
-		}
+	for _, x := range results {
 		sum += x.IntVal()
 	}
 	return NewIntResult(sum), nil
 }
 
-func addVerify(t ResultType, index int) bool {
+func subResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	total := results[0].IntVal()
+	for _, r := range results[1:] {
+		total -= r.IntVal()
+	}
+	return NewIntResult(total), nil
+}
+
+func onlyIntVerify(t ResultType, index int) bool {
 	return t == INT_RESULT
 }
