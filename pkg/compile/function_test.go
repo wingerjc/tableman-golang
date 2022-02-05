@@ -71,6 +71,11 @@ func TestSubfunc(t *testing.T) {
 	assert.True(result.MatchType(program.INT_RESULT))
 	assert.Equal(6, result.IntVal())
 
+	expr = `{ sub(6, 8) }`
+	result = shouldParseExpression(expr, p, assert)
+	assert.True(result.MatchType(program.INT_RESULT))
+	assert.Equal(-2, result.IntVal())
+
 	expr = `{ sub(21, 3, 3, 3, 3, 3, 6) }`
 	result = shouldParseExpression(expr, p, assert)
 	assert.True(result.MatchType(program.INT_RESULT))

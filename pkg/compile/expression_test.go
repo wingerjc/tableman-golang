@@ -40,6 +40,4 @@ func TestExpresion(t *testing.T) {
 	expr = `{ @foo=5, @bar=add(@foo,4), @baz=sub(@bar, 2); @baz }`
 	res = shouldParseExpression(expr, p, assert)
 	assert.Equal(7, res.IntVal())
-
-	assert.Fail("foo")
 }
