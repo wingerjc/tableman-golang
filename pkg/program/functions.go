@@ -2,39 +2,8 @@ package program
 
 import (
 	"fmt"
-)
-
-var (
-	FUNCTION_LIST = map[string]*FunctionDef{
-		"add": {
-			funcName:    "add",
-			minParams:   1,
-			maxParams:   -1,
-			resolve:     addResolve,
-			verifyParam: onlyIntVerify,
-		},
-		"sum": {
-			funcName:    "sum",
-			minParams:   1,
-			maxParams:   -1,
-			resolve:     addResolve,
-			verifyParam: onlyIntVerify,
-		},
-		"sub": {
-			funcName:    "sub",
-			minParams:   1,
-			maxParams:   -1,
-			resolve:     subResolve,
-			verifyParam: onlyIntVerify,
-		},
-		"concat": {
-			funcName:    "concat",
-			minParams:   1,
-			maxParams:   -1,
-			resolve:     concatResolve,
-			verifyParam: onlyStringVerify,
-		},
-	}
+	"strconv"
+	"strings"
 )
 
 type FunctionDef struct {
@@ -143,10 +112,37 @@ func concatResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 	return NewStringResult(final), nil
 }
 
+func upperResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	return NewStringResult(strings.ToUpper(results[0].StringVal())), nil
+}
+
+func lowerResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	return NewStringResult(strings.ToLower(results[0].StringVal())), nil
+}
+
+func toStrResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	if results[0].MatchType(STRING_RESULT) {
+		return results[0], nil
+	}
+	return NewStringResult(strconv.Itoa(results[0].IntVal())), nil
+}
+
+func toIntResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	if results[0].MatchType(INT_RESULT) {
+		return results[0], nil
+	}
+	result, err := strconv.Atoi(results[0].StringVal())
+	return NewIntResult(result), err
+}
+
 func onlyIntVerify(t ResultType, index int) bool {
 	return t == INT_RESULT
 }
 
 func onlyStringVerify(t ResultType, index int) bool {
 	return t == STRING_RESULT
+}
+
+func anyVerify(t ResultType, index int) bool {
+	return true
 }

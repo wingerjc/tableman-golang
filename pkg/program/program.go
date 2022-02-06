@@ -70,6 +70,23 @@ type ExpressionResult struct {
 	intVal     int
 }
 
+func (e *ExpressionResult) Equal(other *ExpressionResult) bool {
+	if e.resultType != other.resultType {
+		return false
+	}
+	if e.resultType == INT_RESULT {
+		return e.intVal == other.intVal
+	}
+	if e.resultType == STRING_RESULT {
+		return e.strVal == other.strVal
+	}
+	return false
+}
+
+func (e *ExpressionResult) SameType(other *ExpressionResult) bool {
+	return e.resultType == other.resultType
+}
+
 func NewStringResult(val string) *ExpressionResult {
 	return &ExpressionResult{
 		resultType: STRING_RESULT,

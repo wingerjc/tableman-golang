@@ -1,7 +1,5 @@
 package program
 
-import "github.com/k0kubun/pp"
-
 type Expression struct {
 	varOrder []string
 	vars     map[string]Evallable
@@ -64,6 +62,5 @@ func (r *runtimeExpression) Provide(res *ExpressionResult) error {
 }
 
 func (r *runtimeExpression) Resolve() (*ExpressionResult, error) {
-	pp.Println(r.ctx)
 	return r.res, nil
 }
