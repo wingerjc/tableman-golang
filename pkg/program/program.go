@@ -83,6 +83,10 @@ func (e *ExpressionResult) Equal(other *ExpressionResult) bool {
 	return false
 }
 
+func (e *ExpressionResult) BoolVal() bool {
+	return e.resultType == INT_RESULT && e.intVal != 0
+}
+
 func (e *ExpressionResult) SameType(other *ExpressionResult) bool {
 	return e.resultType == other.resultType
 }

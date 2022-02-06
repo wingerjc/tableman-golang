@@ -1,7 +1,7 @@
 package program
 
 var (
-	FUNCTION_LIST = map[string]*FunctionDef{
+	GENERIC_FUNCTION_LIST = map[string]*FunctionDef{
 		"add": {
 			funcName:    "add",
 			minParams:   1,
@@ -114,5 +114,8 @@ var (
 			resolve:     notResolve,
 			verifyParam: onlyIntVerify,
 		},
+	}
+	SPECIALIZED_FUNCTION_LIST = map[string]func(string, []Evallable) (Evallable, error){
+		"if": newIfFunction,
 	}
 )

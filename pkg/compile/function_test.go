@@ -508,5 +508,31 @@ func TestNotFunc(t *testing.T) {
 
 	expr = `{ not(foo) }`
 	assertRuntimeFail(expr, p, assert)
+}
 
+func TestIfFunc(t *testing.T) {
+	p, assert := setupParser(t)
+
+	expr := `{ if(1, true, false) }`
+	result := shouldParseExpression(expr, p, assert)
+	assertString("true", result, assert)
+
+	expr = `{ if(0, true, false) }`
+	result = shouldParseExpression(expr, p, assert)
+	assertString("false", result, assert)
+
+	expr = `{ if() }`
+	assertCompFail(expr, p, assert)
+
+	expr = `{ if(1) }`
+	assertCompFail(expr, p, assert)
+
+	expr = `{ if(1, true) }`
+	assertCompFail(expr, p, assert)
+
+	expr = `{ if(1, true, false, other) }`
+	assertCompFail(expr, p, assert)
+
+	expr = `{ if(asdf, true, false) }`
+	assertRuntimeFail(expr, p, assert)
 }

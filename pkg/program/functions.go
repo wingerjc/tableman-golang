@@ -20,7 +20,11 @@ type GenericFunction struct {
 }
 
 func NewFunction(name string, params []Evallable) (Evallable, error) {
-	config, ok := FUNCTION_LIST[name]
+	fn, ok := SPECIALIZED_FUNCTION_LIST[name]
+	if ok {
+		return fn(name, params)
+	}
+	config, ok := GENERIC_FUNCTION_LIST[name]
 	if !ok {
 		return nil, fmt.Errorf("could not find function '%s'", name)
 	}
@@ -145,4 +149,72 @@ func onlyStringVerify(t ResultType, index int) bool {
 
 func anyVerify(t ResultType, index int) bool {
 	return true
+}
+
+type ifFunction struct {
+	condition Evallable
+	trueVal   Evallable
+	falseVal  Evallable
+}
+
+func newIfFunction(name string, vals []Evallable) (Evallable, error) {
+	if len(vals) != 3 {
+		return nil, fmt.Errorf("need 3 parameters for 'if', was passed %d", len(vals))
+	}
+	return &ifFunction{
+		condition: vals[0],
+		trueVal:   vals[1],
+		falseVal:  vals[2],
+	}, nil
+}
+
+func (i *ifFunction) Eval() ExpressionEval {
+	return &ifFunctionEval{
+		config: i,
+	}
+}
+
+type ifFunctionEval struct {
+	ctx             *ExecutionContext
+	config          *ifFunction
+	conditionResult *ExpressionResult
+	result          *ExpressionResult
+}
+
+func (i *ifFunctionEval) SetContext(ctx *ExecutionContext) ExpressionEval {
+	i.ctx = ctx
+	return i
+}
+
+func (i *ifFunctionEval) HasNext() bool {
+	return i.conditionResult == nil || i.result == nil
+}
+
+func (i *ifFunctionEval) Next() ExpressionEval {
+	if i.conditionResult == nil {
+		return i.config.condition.Eval().SetContext(i.ctx.Child())
+	}
+	if i.conditionResult.BoolVal() {
+		return i.config.trueVal.Eval().SetContext(i.ctx.Child())
+	}
+	return i.config.falseVal.Eval().SetContext(i.ctx.Child())
+}
+
+func (i *ifFunctionEval) Provide(res *ExpressionResult) error {
+	if i.conditionResult == nil {
+		if !res.MatchType(INT_RESULT) {
+			return fmt.Errorf("'if' condition must be an integer expression")
+		}
+		i.conditionResult = res
+		return nil
+	}
+	if i.result != nil {
+		return fmt.Errorf("'if' result already set, cannot set a second time")
+	}
+	i.result = res
+	return nil
+}
+
+func (i *ifFunctionEval) Resolve() (*ExpressionResult, error) {
+	return i.result, nil
 }
