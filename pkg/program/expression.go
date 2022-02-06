@@ -1,25 +1,25 @@
 package program
 
+import "github.com/k0kubun/pp"
+
 type Expression struct {
-	vars map[string]Evallable
-	expr Evallable
+	varOrder []string
+	vars     map[string]Evallable
+	expr     Evallable
 }
 
-func NewExpression(vars map[string]Evallable, expr Evallable) Evallable {
+func NewExpression(varOrder []string, vars map[string]Evallable, expr Evallable) Evallable {
 	return &Expression{
-		vars: vars,
-		expr: expr,
+		varOrder: varOrder,
+		vars:     vars,
+		expr:     expr,
 	}
 }
 
 func (e *Expression) Eval() ExpressionEval {
-	keys := make([]string, 0, len(e.vars))
-	for k := range e.vars {
-		keys = append(keys, k)
-	}
 	return &runtimeExpression{
 		expr:  e,
-		keys:  keys,
+		keys:  e.varOrder,
 		index: 0,
 	}
 }
@@ -64,5 +64,6 @@ func (r *runtimeExpression) Provide(res *ExpressionResult) error {
 }
 
 func (r *runtimeExpression) Resolve() (*ExpressionResult, error) {
+	pp.Println(r.ctx)
 	return r.res, nil
 }

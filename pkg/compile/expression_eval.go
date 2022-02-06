@@ -7,18 +7,20 @@ import (
 
 func CompileExpression(node *parser.Expression) (program.Evallable, error) {
 	vars := make(map[string]program.Evallable)
+	varOrder := make([]string, 0, len(node.Vars))
 	for _, v := range node.Vars {
 		expr, err := CompileValueExpr(v.AssignedValue)
 		if err != nil {
 			return nil, err
 		}
 		vars[v.VarName.Name] = expr
+		varOrder = append(varOrder, v.VarName.Name)
 	}
 	res, err := CompileValueExpr(node.Value)
 	if err != nil {
 		return nil, err
 	}
-	return program.NewExpression(vars, res), nil
+	return program.NewExpression(varOrder, vars, res), nil
 }
 
 func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {

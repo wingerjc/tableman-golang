@@ -27,6 +27,13 @@ var (
 			resolve:     subResolve,
 			verifyParam: onlyIntVerify,
 		},
+		"concat": {
+			funcName:    "concat",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     concatResolve,
+			verifyParam: onlyStringVerify,
+		},
 	}
 )
 
@@ -128,6 +135,18 @@ func subResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 	return NewIntResult(total), nil
 }
 
+func concatResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	final := ""
+	for _, r := range results {
+		final += r.StringVal()
+	}
+	return NewStringResult(final), nil
+}
+
 func onlyIntVerify(t ResultType, index int) bool {
 	return t == INT_RESULT
+}
+
+func onlyStringVerify(t ResultType, index int) bool {
+	return t == STRING_RESULT
 }
