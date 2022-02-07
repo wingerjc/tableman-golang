@@ -54,7 +54,8 @@ type Tag struct {
 type TableRow struct {
 	Pos     lexer.Position
 	Default bool         `parser:"(@Default?"`
-	Weight  string       `parser:"@WeightMarker?"`
+	Weight  int          `parser:"(WeightMarker @Number)?"`
+	Count   int          `parser:"(CountMarker @Number)?"`
 	Numbers *RangeList   `parser:"@@?"`
 	Label   *LabelString `parser:"@@? ':')?"`
 	Values  []*RowItem   `parser:"@@+"`
@@ -179,7 +180,8 @@ var (
 			{Name: "TableStart", Pattern: `TableDef:`},
 			{Name: "Import", Pattern: `Import:`},
 			{Name: "PackAlias", Pattern: `As:`},
-			{Name: "WeightMarker", Pattern: `w=` + WHOLE_NUMBER},
+			{Name: "WeightMarker", Pattern: `w=`},
+			{Name: "CountMarker", Pattern: `c=`},
 			{Name: "ExtendLine", Pattern: `->`},
 			{Name: "TableBarrier", Pattern: `--(-+)`},
 			{Name: "FilePath", Pattern: `f\"(([A-Za-z]:)|~|(\.\.?))?/.*\"`},

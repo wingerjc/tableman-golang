@@ -187,7 +187,16 @@ func TestTableRow(t *testing.T) {
 	val = &TableRow{}
 	err = parser.ParseString("", `w=36: "xyz"`, val)
 	assert.NoError(err)
-	assert.Equal("w=36", val.Weight)
+	assert.Equal(36, val.Weight)
+	if print {
+		pp.Println(val)
+	}
+
+	// Count rows
+	val = &TableRow{}
+	err = parser.ParseString("", `c=36: "xyz"`, val)
+	assert.NoError(err)
+	assert.Equal(36, val.Count)
 	if print {
 		pp.Println(val)
 	}
