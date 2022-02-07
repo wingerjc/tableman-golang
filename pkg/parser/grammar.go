@@ -15,6 +15,11 @@ const (
 	VAR_EXPR_T   = ValueExprType(6)
 )
 
+var (
+	DEFAULT_LEXER = participle.Lexer(fileLexer)
+	DEFAULT_ELIDE = participle.Elide("Comment", "Whitespace", "CommentLine")
+)
+
 type TableFile struct {
 	Pos    lexer.Position
 	Header *FileHeader `parser:"EOL* @@"`
@@ -67,6 +72,14 @@ type RowItem struct {
 	Expression *Expression `parser:"| @@)(ExtendLine EOL)?"`
 }
 
+func (r *RowItem) String() string {
+	if r.StringVal == nil {
+		return ""
+	}
+	l := len(*r.StringVal)
+	return (*r.StringVal)[1 : l-1]
+}
+
 type LabelString struct {
 	Pos     lexer.Position
 	Single  *string `parser:"@TableName"`
@@ -86,9 +99,8 @@ func (l *LabelString) IsLabel() bool {
 }
 
 type RangeList struct {
-	Pos   lexer.Position
-	First *NumberRange   `parser:"@@"`
-	Rest  []*NumberRange `parser:"(','@@)*"`
+	Pos    lexer.Position
+	Ranges []*NumberRange `parser:"@@ (','@@)*"`
 }
 
 // NumberRange represents a single number or a range.
@@ -233,51 +245,3 @@ var (
 		},
 	})
 )
-
-type TableFileParser struct {
-	p *participle.Parser
-}
-
-func (t *TableFileParser) Parse(code string) (*TableFile, error) {
-	res := &TableFile{}
-	err := t.p.ParseString("", code, res)
-	return res, err
-}
-
-func GetParser() (*TableFileParser, error) {
-	p, err := participle.Build(
-		&TableFile{},
-		participle.Lexer(fileLexer),
-		participle.Elide("Comment", "Whitespace", "CommentLine"),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &TableFileParser{
-		p: p,
-	}, nil
-}
-
-type ExpressionParser struct {
-	p *participle.Parser
-}
-
-func (e *ExpressionParser) Parse(code string) (*Expression, error) {
-	res := &Expression{}
-	err := e.p.ParseString("", code, res)
-	return res, err
-}
-
-func GetExpressionParser() (*ExpressionParser, error) {
-	p, err := participle.Build(
-		&Expression{},
-		participle.Lexer(fileLexer),
-		participle.Elide("Comment", "Whitespace", "CommentLine"),
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &ExpressionParser{
-		p: p,
-	}, nil
-}

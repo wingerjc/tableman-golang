@@ -64,8 +64,8 @@ func TestNumberRanges(t *testing.T) {
 	val3 := &RangeList{}
 	err = p2.ParseString("", `1-7,4,5,9`, val3)
 	assert.NoError(err)
-	assert.NotNil(val3.First)
-	assert.Len(val3.Rest, 3)
+	assert.NotNil(val3.Ranges)
+	assert.Len(val3.Ranges, 4)
 	if print {
 		pp.Println(val3)
 	}

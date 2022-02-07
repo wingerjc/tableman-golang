@@ -55,13 +55,6 @@ type Import struct {
 	Alias    string
 }
 
-type Table struct {
-	// rows []*TableRow
-}
-
-type TableRow struct {
-}
-
 type ResultType int
 
 type ExpressionResult struct {
