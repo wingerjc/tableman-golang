@@ -186,6 +186,10 @@ func (n *ExtendedTableName) TableName() string {
 	return n.Names[len(n.Names)-1]
 }
 
+func (n *ExtendedTableName) FullName() string {
+	return strings.Join(n.Names, ".")
+}
+
 const (
 	NATURAL_NUMBER = `([1-9][0-9]*)`
 	WHOLE_NUMBER   = `(0|([1-9][0-9]*))`

@@ -2,8 +2,6 @@ package program
 
 import (
 	"fmt"
-
-	"github.com/wingerjc/tableman-golang/pkg/parser"
 )
 
 type Evallable interface {
@@ -19,40 +17,19 @@ type ExpressionEval interface {
 }
 
 type Program struct {
-	packs map[string]*TablePack
+	packs TableMap
 }
 
-func NewProgram() *Program {
-	packs := make(map[string]*TablePack)
+func NewProgram(packs TableMap) *Program {
 	return &Program{
 		packs: packs,
 	}
 }
 
-func (p *Program) AddPack(pack *TablePack) error {
-	if _, ok := p.packs[pack.Name]; ok {
-		return fmt.Errorf("pack name conflict, cannot have 2 packs named: %s", pack.Name)
-	}
-	p.packs[pack.Name] = pack
-	return nil
-}
-
 type TablePack struct {
-	Name    string
-	tables  map[string]Table
-	Imports []*Import
-}
-
-func TablePackFromAST(ast *parser.TableFile) (*TablePack, []error) {
-	return &TablePack{
-		tables:  make(map[string]Table),
-		Imports: make([]*Import, 0),
-	}, nil
-}
-
-type Import struct {
-	FileName string
-	Alias    string
+	key    string
+	Name   string
+	tables map[string]Table
 }
 
 type ResultType int
@@ -177,4 +154,10 @@ func EvaluateExpression(e Evallable) (*ExpressionResult, error) {
 		}
 	}
 	return nil, fmt.Errorf("ASDFASDFASDFASDF")
+}
+
+type TableMap map[string]*TablePack
+
+func NewTableMap() TableMap {
+	return make(map[string]*TablePack)
 }

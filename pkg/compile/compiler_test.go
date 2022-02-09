@@ -3,7 +3,6 @@ package compiler
 import (
 	"testing"
 
-	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,10 +25,7 @@ func TestCompileString(t *testing.T) {
 	Default 1,2,3: "mice"
 	4,5,6: { @foo=!first(); concat(@foo, call(@foo) ) }
 	`
-	p, errs := c.CompileString(table)
-	for _, e := range errs {
-		pp.Println(e)
-	}
-	assert.Nil(errs)
+	p, err := c.CompileString(table)
+	assert.NoError(err)
 	assert.NotNil(p)
 }
