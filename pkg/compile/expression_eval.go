@@ -37,6 +37,12 @@ func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
 		return program.NewString(node.Label.String(), node.Label.IsLabel()), nil
 	case parser.VAR_EXPR_T:
 		return program.NewVariable(node.Variable.Name), nil
+	case parser.TABLE_EXPR_T:
+		params, err := getParams(node)
+		if err != nil {
+			return nil, err
+		}
+		return program.NewTableCall(node.Call.Name.PackageName(), node.Call.Name.TableName(), params), nil
 	}
 	return nil, nil
 }

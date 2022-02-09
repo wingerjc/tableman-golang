@@ -2,8 +2,22 @@ package program
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
+
+	"github.com/k0kubun/pp"
 )
+
+type RandomSource interface {
+	Get(low int, high int) int
+}
+
+type DefaultRandSource struct {
+}
+
+func (r *DefaultRandSource) Get(low int, high int) int {
+	return rand.Intn(high-low) + low
+}
 
 type Table struct {
 	name         string
@@ -15,9 +29,10 @@ type Table struct {
 	totalCount   int
 	currentCount int
 	defaultRow   int
+	random       RandomSource
 }
 
-func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
+func NewTable(name string, tags map[string]string, rows []*TableRow, random RandomSource) *Table {
 	result := &Table{
 		name:         name,
 		tags:         tags,
@@ -28,6 +43,7 @@ func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 		totalCount:   0,
 		currentCount: 0,
 		defaultRow:   -1,
+		random:       random,
 	}
 	for i, r := range result.rows {
 		if len(r.label) > 0 {
@@ -48,19 +64,72 @@ func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 }
 
 func (t *Table) Roll() Evallable {
-	return nil
+	index := t.random.Get(0, len(t.rows))
+	return t.rows[index].Value()
 }
 
 func (t *Table) WeightedRoll() Evallable {
-	return nil
+	roll := t.random.Get(0, t.totalWeight)
+	i := 0
+	for {
+		cur := t.rows[i].Weight
+		pp.Println(roll, cur)
+		if t.rows[i].Weight() > roll {
+			return t.rows[i].Value()
+		}
+		roll -= t.rows[i].Weight()
+		i++
+	}
 }
 
-func (t *Table) DeckDraw() Evallable {
-	return nil
+func (t *Table) LabelRoll(key string) (Evallable, error) {
+	r, ok := t.rowsByLabel[key]
+	if !ok {
+		if t.defaultRow >= 0 {
+			return t.rows[t.defaultRow].Value(), nil
+		}
+		return nil, fmt.Errorf("in table '%s' no row labelled '%s' and no default row", t.name, key)
+	}
+	return r.Value(), nil
 }
 
-func (t *Table) IndexRoll() Evallable {
-	return nil
+func (t *Table) DeckDraw() (Evallable, error) {
+	if t.currentCount == 0 {
+		return nil, fmt.Errorf("deck draw called too many times without shuffle on table '%s'", t.name)
+	}
+
+	roll := t.random.Get(0, t.currentCount)
+	for _, r := range t.rows {
+		if r.currentCount == 0 {
+			continue
+		}
+		if roll < r.currentCount {
+			r.currentCount--
+			t.currentCount--
+			return r.Value(), nil
+		}
+		roll -= r.currentCount
+	}
+	return nil, fmt.Errorf("rolled too high on deck draw for table '%s'", t.name)
+}
+
+func (t *Table) Shuffle() {
+	for _, r := range t.rows {
+		r.currentCount = r.count
+	}
+	t.currentCount = t.totalCount
+}
+
+func (t *Table) IndexRoll(key int) (Evallable, error) {
+	for _, rng := range t.rowsByRange {
+		if rng.InRange(key) {
+			return rng.Row().Value(), nil
+		}
+	}
+	if t.defaultRow >= 0 {
+		return t.rows[t.defaultRow].Value(), nil
+	}
+	return nil, fmt.Errorf("in table '%s' no index %d and no default row set", t.name, key)
 }
 
 func (t *Table) Name() string {

@@ -16,10 +16,10 @@ func parseRow(expr string, p *parser.RowParser, assert *assert.Assertions) *prog
 	return row
 }
 
-func parseTable(expr string, p *parser.TableParser, assert *assert.Assertions) *program.Table {
+func parseTable(expr string, p *parser.TableParser, assert *assert.Assertions, random program.RandomSource) *program.Table {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	table, err := CompileTable(parsed)
+	table, err := CompileTable(parsed, random)
 	assert.NoError(err)
 	return table
 }
@@ -67,7 +67,7 @@ func TestTableConstruction(t *testing.T) {
 	~ fruit: banana
 	w=2 c=4: {2}
 	Default w=3 c=9: {3}`
-	table := parseTable(expr, p, assert)
+	table := parseTable(expr, p, assert, &program.DefaultRandSource{})
 	assert.Equal(2, table.RowCount())
 	assert.Equal(5, table.TotalWeight())
 	assert.Equal(13, table.TotalCount())
@@ -86,10 +86,196 @@ func TestTableConstruction(t *testing.T) {
 	"first"
 	"second"
 	"third"`
-	table = parseTable(expr, p, assert)
+	table = parseTable(expr, p, assert, &program.DefaultRandSource{})
 	assert.Equal(3, table.RowCount())
 	assert.Equal(3, table.TotalWeight())
 	assert.Equal(3, table.TotalCount())
 	_, err = table.Default()
 	assert.Error(err)
+}
+
+type testingRandSource struct {
+	vals []int
+}
+
+func (r *testingRandSource) Get(low int, high int) int {
+	result := r.vals[0]
+	r.vals = r.vals[1:]
+	return result
+}
+
+func (r *testingRandSource) addMore(vals ...int) {
+	r.vals = append(r.vals, vals...)
+}
+
+func newTestRandSource(val ...int) *testingRandSource {
+	return &testingRandSource{
+		vals: val,
+	}
+}
+
+func TestTableRoll(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	{1}
+	1,6,7:{2}
+	Default:{3}
+	w=3:{4}
+	c=19:{5}
+	asdf:{6}`
+	table := parseTable(expr, p, assert, rand)
+	rand.addMore(5, 4, 3, 2, 1, 0)
+	result, err := program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("6", result.StringVal())
+	result, err = program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("5", result.StringVal())
+	result, err = program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("4", result.StringVal())
+	result, err = program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("3", result.StringVal())
+	result, err = program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("2", result.StringVal())
+	result, err = program.EvaluateExpression(table.Roll())
+	assert.NoError(err)
+	assert.Equal("1", result.StringVal())
+}
+
+func TestWeightedRoll(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	w=3: {1}
+	{2}
+	Default w=4:{3}
+	w=6 3-12:{4}
+	c=19:{5}
+	asdf:{6}`
+	testCases := []int{1, 3, 14, 11}
+	testExpect := []string{"1", "2", "5", "4"}
+	table := parseTable(expr, p, assert, rand)
+
+	for i, val := range testCases {
+		rand.addMore(val)
+		result, err := program.EvaluateExpression(table.WeightedRoll())
+		assert.NoError(err)
+		assert.Equal(testExpect[i], result.StringVal())
+	}
+}
+
+func TestLabelRoll(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	w=3 once: {1}
+	upon:{2}
+	Default w=4 a:{3}
+	w=6 3-12 time:{4}
+	c=19 there:{5}
+	"was a":{6}`
+	testCases := []string{"was a", "time", "once", "there", "N/A"}
+	testExpect := []string{"6", "4", "1", "5", "3"}
+	table := parseTable(expr, p, assert, rand)
+
+	for i, val := range testCases {
+		row, err := table.LabelRoll(val)
+		assert.NoError(err)
+		result, err := program.EvaluateExpression(row)
+		assert.NoError(err)
+		assert.Equal(testExpect[i], result.StringVal())
+	}
+
+	expr = `TableDef: bar
+	{7}`
+	table = parseTable(expr, p, assert, rand)
+	_, err = table.LabelRoll("anything  honestly")
+	assert.Error(err)
+}
+
+func TestIndexRoll(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	1,2,6-8: {1}
+	Default: {2}
+	w=4 13-15:{3}
+	asdf:{4}
+	9: {5}`
+	testCases := []int{9, 8, 14, 128}
+	testExpect := []string{"5", "1", "3", "2"}
+	table := parseTable(expr, p, assert, rand)
+
+	for i, val := range testCases {
+		row, err := table.IndexRoll(val)
+		assert.NoError(err)
+		result, err := program.EvaluateExpression(row)
+		assert.NoError(err)
+		assert.Equal(testExpect[i], result.StringVal())
+	}
+
+	expr = `TableDef: bar
+	{999}`
+	table = parseTable(expr, p, assert, rand)
+	_, err = table.IndexRoll(123)
+	assert.Error(err)
+}
+
+func TestDeckRoll(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	{1}
+	Default w=3 c=2: {2}
+	w=4:{3}
+	asdf:{4}
+	c=10 9: {5}`
+	testCases := []int{0, 0, 12}
+	testExpect := []string{"1", "2", "5"}
+	table := parseTable(expr, p, assert, rand)
+
+	for i, val := range testCases {
+		rand.addMore(val)
+		row, err := table.DeckDraw()
+		assert.NoError(err)
+		result, err := program.EvaluateExpression(row)
+		assert.NoError(err)
+		assert.Equal(testExpect[i], result.StringVal())
+	}
+
+	expr = `TableDef: bar
+	{2}`
+	table = parseTable(expr, p, assert, rand)
+	rand.addMore(0, 0, 0, 0)
+	_, err = table.DeckDraw()
+	assert.NoError(err)
+	_, err = table.DeckDraw()
+	assert.Error(err)
+	table.Shuffle()
+	_, err = table.DeckDraw()
+	assert.NoError(err)
 }

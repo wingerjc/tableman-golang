@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strings"
+
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 )
@@ -174,6 +176,14 @@ type VarName struct {
 }
 type ExtendedTableName struct {
 	Names []string `parser:" @TableName (PkgDelimiter @TableName)*"`
+}
+
+func (n *ExtendedTableName) PackageName() string {
+	return strings.Join(n.Names[:(len(n.Names)-1)], ".")
+}
+
+func (n *ExtendedTableName) TableName() string {
+	return n.Names[len(n.Names)-1]
 }
 
 const (

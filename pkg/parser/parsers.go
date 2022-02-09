@@ -2,7 +2,6 @@ package parser
 
 import (
 	"github.com/alecthomas/participle/v2"
-	"github.com/k0kubun/pp"
 )
 
 type TableFileParser struct {
@@ -72,7 +71,7 @@ type TableParser struct {
 func (t *TableParser) Parse(code string) (*Table, error) {
 	result := &Table{}
 	err := t.p.ParseString("", code, result)
-	pp.Println(result)
+	// pp.Println(result)
 	return result, err
 }
 
