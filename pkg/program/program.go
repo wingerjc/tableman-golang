@@ -117,6 +117,7 @@ const (
 type ExecutionContext struct {
 	parent *ExecutionContext
 	values map[string]*ExpressionResult
+	packs  TableMap
 }
 
 func NewRootExecutionContext() *ExecutionContext {
@@ -130,6 +131,7 @@ func (ctx *ExecutionContext) Child() *ExecutionContext {
 	return &ExecutionContext{
 		parent: ctx,
 		values: make(map[string]*ExpressionResult),
+		packs:  ctx.packs,
 	}
 }
 
@@ -146,10 +148,13 @@ func (ctx *ExecutionContext) Resolve(key string) *ExpressionResult {
 	return nil
 }
 
-func EvaluateExpression(e Evallable) (*ExpressionResult, error) {
+func EvaluateExpression(e Evallable, ctx *ExecutionContext) (*ExpressionResult, error) {
+	if ctx == nil {
+		ctx = NewRootExecutionContext()
+	}
 	stack := make([]ExpressionEval, 0)
 	stack = append(stack, e.Eval())
-	stack[0].SetContext(NewRootExecutionContext())
+	stack[0].SetContext(ctx)
 	for len(stack) > 0 {
 		// See if we need to push another resolution node on the current stack.
 		cur := stack[len(stack)-1]

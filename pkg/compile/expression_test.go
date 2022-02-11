@@ -32,5 +32,5 @@ func TestExpression(t *testing.T) {
 }
 
 func TestTableCallCompile(t *testing.T) {
-
+	// expr := `{ !color() }`
 }

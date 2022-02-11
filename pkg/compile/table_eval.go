@@ -5,14 +5,14 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
-func CompileTable(t *parser.Table, random program.RandomSource) (*program.Table, error) {
+func CompileTable(t *parser.Table, random program.RandomSource, packKeys nameMap) (*program.Table, error) {
 	tags := make(map[string]string)
 	for _, tag := range t.Header.Tags {
 		tags[tag.Key.String()] = tag.Value.String()
 	}
 	rows := make([]*program.TableRow, 0)
 	for _, r := range t.Rows {
-		newRow, err := CompileRow(r)
+		newRow, err := CompileRow(r, packKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -21,13 +21,13 @@ func CompileTable(t *parser.Table, random program.RandomSource) (*program.Table,
 	return program.NewTable(t.Header.Name, tags, rows, random), nil
 }
 
-func CompileRow(r *parser.TableRow) (*program.TableRow, error) {
+func CompileRow(r *parser.TableRow, packKeys nameMap) (*program.TableRow, error) {
 	var err error
 	items := make([]program.Evallable, 0)
 	for _, i := range r.Values {
 		var e program.Evallable
 		if i.Expression != nil {
-			e, err = CompileExpression(i.Expression)
+			e, err = CompileExpression(i.Expression, packKeys)
 		} else {
 			e = program.NewString(i.String(), false)
 		}

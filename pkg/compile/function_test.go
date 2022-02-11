@@ -8,6 +8,10 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
+var (
+	DEFAULT_NAME_MAP = make(nameMap)
+)
+
 func assertInt(expect int, r *program.ExpressionResult, assert *assert.Assertions) {
 	assert.True(r.MatchType(program.INT_RESULT))
 	assert.Equal(expect, r.IntVal())
@@ -21,25 +25,25 @@ func assertString(expect string, r *program.ExpressionResult, assert *assert.Ass
 func assertCompFail(expr string, p *parser.ExpressionParser, assert *assert.Assertions) {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	_, err = CompileExpression(parsed)
+	_, err = CompileExpression(parsed, DEFAULT_NAME_MAP)
 	assert.Error(err)
 }
 
 func assertRuntimeFail(expr string, p *parser.ExpressionParser, assert *assert.Assertions) {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	prog, err := CompileExpression(parsed)
+	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
 	assert.NoError(err)
-	_, err = program.EvaluateExpression(prog)
+	_, err = program.EvaluateExpression(prog, nil)
 	assert.Error(err)
 }
 
 func shouldParseExpression(expr string, p *parser.ExpressionParser, assert *assert.Assertions) *program.ExpressionResult {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	prog, err := CompileExpression(parsed)
+	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
 	assert.NoError(err)
-	res, err := program.EvaluateExpression(prog)
+	res, err := program.EvaluateExpression(prog, nil)
 	assert.NoError(err)
 	return res
 }

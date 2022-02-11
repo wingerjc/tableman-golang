@@ -26,7 +26,7 @@ func TestCompileString(t *testing.T) {
 	
 	TableDef: TheOtherOne
 	Default 1,2,3: "mice"
-	4,5,6: { @foo=!first(); concat(@foo, call(@foo) ) }
+	4,5,6: { @foo=!first(); concat(@foo, !call(@foo) ) }
 	`
 	p, err := c.CompileString(table)
 	assert.NoError(err)

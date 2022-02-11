@@ -11,7 +11,7 @@ import (
 func parseRow(expr string, p *parser.RowParser, assert *assert.Assertions) *program.TableRow {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	row, err := CompileRow(parsed)
+	row, err := CompileRow(parsed, DEFAULT_NAME_MAP)
 	assert.NoError(err)
 	return row
 }
@@ -19,7 +19,7 @@ func parseRow(expr string, p *parser.RowParser, assert *assert.Assertions) *prog
 func parseTable(expr string, p *parser.TableParser, assert *assert.Assertions, random program.RandomSource) *program.Table {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	table, err := CompileTable(parsed, random)
+	table, err := CompileTable(parsed, random, DEFAULT_NAME_MAP)
 	assert.NoError(err)
 	return table
 }
@@ -31,7 +31,7 @@ func TestTableRowCompile(t *testing.T) {
 
 	expr := `"first"`
 	row := parseRow(expr, p, assert)
-	result, err := program.EvaluateExpression(row.Value())
+	result, err := program.EvaluateExpression(row.Value(), nil)
 	assert.NoError(err)
 	assert.Equal("first", result.StringVal())
 	assert.Equal(1, row.Count())
@@ -42,7 +42,7 @@ func TestTableRowCompile(t *testing.T) {
 
 	expr = `Default w=3 c=6 1,3-9,40 foo:{5}`
 	row = parseRow(expr, p, assert)
-	result, err = program.EvaluateExpression(row.Value())
+	result, err = program.EvaluateExpression(row.Value(), nil)
 	assert.NoError(err)
 	assert.Equal("5", result.StringVal())
 	assert.Equal(6, row.Count())
@@ -53,7 +53,7 @@ func TestTableRowCompile(t *testing.T) {
 
 	expr = `{foo} {bar} {baz}`
 	row = parseRow(expr, p, assert)
-	result, err = program.EvaluateExpression(row.Value())
+	result, err = program.EvaluateExpression(row.Value(), nil)
 	assert.NoError(err)
 	assert.Equal("foobarbaz", result.StringVal())
 }
@@ -78,7 +78,7 @@ func TestTableConstruction(t *testing.T) {
 	assert.False(ok)
 	row, err := table.Default()
 	assert.NoError(err)
-	result, err := program.EvaluateExpression(row)
+	result, err := program.EvaluateExpression(row, nil)
 	assert.NoError(err)
 	assert.Equal("3", result.StringVal())
 
@@ -130,22 +130,22 @@ func TestTableRoll(t *testing.T) {
 	asdf:{6}`
 	table := parseTable(expr, p, assert, rand)
 	rand.addMore(5, 4, 3, 2, 1, 0)
-	result, err := program.EvaluateExpression(table.Roll())
+	result, err := program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("6", result.StringVal())
-	result, err = program.EvaluateExpression(table.Roll())
+	result, err = program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("5", result.StringVal())
-	result, err = program.EvaluateExpression(table.Roll())
+	result, err = program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("4", result.StringVal())
-	result, err = program.EvaluateExpression(table.Roll())
+	result, err = program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("3", result.StringVal())
-	result, err = program.EvaluateExpression(table.Roll())
+	result, err = program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("2", result.StringVal())
-	result, err = program.EvaluateExpression(table.Roll())
+	result, err = program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("1", result.StringVal())
 }
@@ -170,7 +170,7 @@ func TestWeightedRoll(t *testing.T) {
 
 	for i, val := range testCases {
 		rand.addMore(val)
-		result, err := program.EvaluateExpression(table.WeightedRoll())
+		result, err := program.EvaluateExpression(table.WeightedRoll(), nil)
 		assert.NoError(err)
 		assert.Equal(testExpect[i], result.StringVal())
 	}
@@ -197,7 +197,7 @@ func TestLabelRoll(t *testing.T) {
 	for i, val := range testCases {
 		row, err := table.LabelRoll(val)
 		assert.NoError(err)
-		result, err := program.EvaluateExpression(row)
+		result, err := program.EvaluateExpression(row, nil)
 		assert.NoError(err)
 		assert.Equal(testExpect[i], result.StringVal())
 	}
@@ -229,7 +229,7 @@ func TestIndexRoll(t *testing.T) {
 	for i, val := range testCases {
 		row, err := table.IndexRoll(val)
 		assert.NoError(err)
-		result, err := program.EvaluateExpression(row)
+		result, err := program.EvaluateExpression(row, nil)
 		assert.NoError(err)
 		assert.Equal(testExpect[i], result.StringVal())
 	}
@@ -262,7 +262,7 @@ func TestDeckRoll(t *testing.T) {
 		rand.addMore(val)
 		row, err := table.DeckDraw()
 		assert.NoError(err)
-		result, err := program.EvaluateExpression(row)
+		result, err := program.EvaluateExpression(row, nil)
 		assert.NoError(err)
 		assert.Equal(testExpect[i], result.StringVal())
 	}

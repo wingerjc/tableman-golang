@@ -117,7 +117,7 @@ func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {
 	tables := make(map[string]*program.Table)
 	for _, t := range parsed.Tables {
-		compiledTable, err := CompileTable(t, &program.DefaultRandSource{})
+		compiledTable, err := CompileTable(t, &program.DefaultRandSource{}, tableKeys)
 		if err != nil {
 			return nil, err
 		}

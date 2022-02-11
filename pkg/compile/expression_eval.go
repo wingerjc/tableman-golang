@@ -5,28 +5,28 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
-func CompileExpression(node *parser.Expression) (program.Evallable, error) {
+func CompileExpression(node *parser.Expression, packKeys nameMap) (program.Evallable, error) {
 	vars := make(map[string]program.Evallable)
 	varOrder := make([]string, 0, len(node.Vars))
 	for _, v := range node.Vars {
-		expr, err := CompileValueExpr(v.AssignedValue)
+		expr, err := CompileValueExpr(v.AssignedValue, packKeys)
 		if err != nil {
 			return nil, err
 		}
 		vars[v.VarName.Name] = expr
 		varOrder = append(varOrder, v.VarName.Name)
 	}
-	res, err := CompileValueExpr(node.Value)
+	res, err := CompileValueExpr(node.Value, packKeys)
 	if err != nil {
 		return nil, err
 	}
 	return program.NewExpression(varOrder, vars, res), nil
 }
 
-func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
+func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallable, error) {
 	switch node.GetType() {
 	case parser.FUNC_EXPR_T:
-		params, err := getParams(node)
+		params, err := getParams(node, packKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -38,7 +38,7 @@ func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
 	case parser.VAR_EXPR_T:
 		return program.NewVariable(node.Variable.Name), nil
 	case parser.TABLE_EXPR_T:
-		params, err := getParams(node)
+		params, err := getParams(node, packKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -47,10 +47,10 @@ func CompileValueExpr(node *parser.ValueExpr) (program.Evallable, error) {
 	return nil, nil
 }
 
-func getParams(node *parser.ValueExpr) ([]program.Evallable, error) {
+func getParams(node *parser.ValueExpr, packKeys nameMap) ([]program.Evallable, error) {
 	res := make([]program.Evallable, 0, len(node.Call.Params))
 	for _, x := range node.Call.Params {
-		expr, err := CompileValueExpr(x)
+		expr, err := CompileValueExpr(x, packKeys)
 		if err != nil {
 			return nil, err
 		}
