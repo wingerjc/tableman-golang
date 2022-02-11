@@ -4,35 +4,12 @@ import (
 	"testing"
 
 	"github.com/alecthomas/participle/v2"
-	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/assert"
 )
 
 func parserTypeWithDefaultOptions(t interface{}) (*participle.Parser, error) {
 	return participle.Build(t, participle.Lexer(fileLexer), participle.Elide("Comment", "Whitespace", "CommentLine"))
-}
-
-var typeString map[lexer.TokenType]string
-
-func setupTypeTable() {
-	if len(typeString) == 0 {
-		typeString = make(map[lexer.TokenType]string)
-		for k, v := range fileLexer.Symbols() {
-			typeString[v] = k
-		}
-	}
-}
-
-func printTokens(in string, count int) {
-	setupTypeTable()
-	l, err := fileLexer.LexString("", in)
-	pp.Println(err)
-	t, _ := l.Next()
-	for i := 0; int(t.Type) != -1 && i < count; i++ {
-		pp.Println(typeString[t.Type] + " " + t.Value)
-		t, _ = l.Next()
-	}
 }
 
 func TestNumberRanges(t *testing.T) {
@@ -371,7 +348,7 @@ func TestTableFile(t *testing.T) {
 
 	val = &TableFile{}
 	file = `TablePack: quacko
-	Import: f"~/jeremy"
+	Import: f"~/jeremy" As: something.new
 
 	TableDef: colors
 	Default w=4 1-5,8 red: "red"

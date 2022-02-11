@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+const (
+	ROOT_PACK = "_ROOT"
+)
+
 type Evallable interface {
 	Eval() ExpressionEval
 }
@@ -26,10 +30,22 @@ func NewProgram(packs TableMap) *Program {
 	}
 }
 
+func (p *Program) PackCount() int {
+	return len(p.packs)
+}
+
+func NewTablePack(key string, name string, tables map[string]*Table) *TablePack {
+	return &TablePack{
+		key:    key,
+		name:   name,
+		tables: tables,
+	}
+}
+
 type TablePack struct {
 	key    string
-	Name   string
-	tables map[string]Table
+	name   string
+	tables map[string]*Table
 }
 
 type ResultType int

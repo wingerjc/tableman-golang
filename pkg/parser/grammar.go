@@ -40,6 +40,10 @@ type ImportStatement struct {
 	Alias    *ExtendedTableName `parser:"(PackAlias @@)?"`
 }
 
+func (i *ImportStatement) File() string {
+	return i.FileName[2 : len(i.FileName)-1]
+}
+
 type Table struct {
 	Pos    lexer.Position
 	Header *TableHeader `parser:"@@"`
@@ -210,7 +214,7 @@ var (
 			{Name: "CountMarker", Pattern: `c=`},
 			{Name: "ExtendLine", Pattern: `->`},
 			{Name: "TableBarrier", Pattern: `--(-+)`},
-			{Name: "FilePath", Pattern: `f\"(([A-Za-z]:)|~|(\.\.?))?/.*\"`},
+			{Name: "FilePath", Pattern: `f\"(([A-Za-z]:)|~|(\.\.?))?(/|(\\)+).*\"`},
 			lexer.Include("Atomic"),
 			{Name: "TableDelimiter", Pattern: `:`},
 			{Name: "RangeDash", Pattern: `-`},

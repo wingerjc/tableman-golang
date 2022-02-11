@@ -30,3 +30,7 @@ func TestExpression(t *testing.T) {
 	result = shouldParseExpression(expr, p, assert)
 	assertInt(7, result, assert)
 }
+
+func TestTableCallCompile(t *testing.T) {
+
+}

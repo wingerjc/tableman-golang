@@ -30,8 +30,12 @@ func NewCompiler() (*Compiler, error) {
 	}, nil
 }
 
-func (c *Compiler) CompileFile(fileName string) (*program.Program, []error) {
-	return nil, nil
+func (c *Compiler) CompileFile(fileName string) (*program.Program, error) {
+	code, err := c.loadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	return c.compile(code)
 }
 
 func (c *Compiler) CompileString(code string) (*program.Program, error) {
@@ -40,12 +44,17 @@ func (c *Compiler) CompileString(code string) (*program.Program, error) {
 		return nil, err
 	}
 	key := makeKey(code)
-	tableq := make([]*readTable, 0)
-	tableq = append(tableq, &readTable{
+	return c.compile(&readTable{
 		key:    key,
 		parsed: parsed,
 	})
+}
+func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
+	tableq := make([]*readTable, 0)
+	tableq = append(tableq, pack)
 	tableDefs := program.NewTableMap()
+	parsed := pack.parsed
+	first := true
 	for len(tableq) > 0 {
 		// pop table
 		t := tableq[0]
@@ -63,12 +72,12 @@ func (c *Compiler) CompileString(code string) (*program.Program, error) {
 		// Queue up imports
 		for _, i := range t.parsed.Header.Imports {
 			// filename magic to get an absolute path if we can...
-			fname, err := getFileName(t.fname, i.FileName)
+			fname, err := getFileName(t.fname, i.File())
 			if err != nil {
 				return nil, err
 			}
 			// open file, get hash
-			tr, err := loadFile(fname, c.parser)
+			tr, err := c.loadFile(fname)
 			if err != nil {
 				return nil, err
 			}
@@ -91,22 +100,30 @@ func (c *Compiler) CompileString(code string) (*program.Program, error) {
 		}
 
 		// compile file
-		pack, err := CompileTableFile(t.parsed, keys)
+		pack, err := CompileTableFile(t.parsed, t.key, keys)
 		if err != nil {
 			return nil, err
 		}
 		tableDefs[t.key] = pack
+		if first {
+			first = false
+			tableDefs[program.ROOT_PACK] = pack
+		}
 	}
 
 	return program.NewProgram(tableDefs), nil
 }
 
-func (c *Compiler) compileString(code string) (*program.TablePack, []error) {
-	return nil, nil
-}
-
-func CompileTableFile(parsed *parser.TableFile, tableKeys nameMap) (*program.TablePack, error) {
-	return nil, nil
+func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {
+	tables := make(map[string]*program.Table)
+	for _, t := range parsed.Tables {
+		compiledTable, err := CompileTable(t, &program.DefaultRandSource{})
+		if err != nil {
+			return nil, err
+		}
+		tables[compiledTable.Name()] = compiledTable
+	}
+	return program.NewTablePack(parsed.Header.Name.FullName(), key, tables), nil
 }
 
 func (c *Compiler) parseString(code string) (*parser.TableFile, error) {
@@ -115,6 +132,23 @@ func (c *Compiler) parseString(code string) (*parser.TableFile, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (c *Compiler) loadFile(fname string) (*readTable, error) {
+	f, err := ioutil.ReadFile(fname)
+	if err != nil {
+		return nil, err
+	}
+	code := string(f)
+	parsed, err := c.parser.Parse(code)
+	if err != nil {
+		return nil, err
+	}
+	return &readTable{
+		fname:  fname,
+		parsed: parsed,
+		key:    makeKey(code),
+	}, nil
 }
 
 type nameMap map[string]string
@@ -128,23 +162,6 @@ type readTable struct {
 func makeKey(code string) string {
 	hash := md5.Sum([]byte(code))
 	return hex.EncodeToString(hash[:])
-}
-
-func loadFile(fname string, p *parser.TableFileParser) (*readTable, error) {
-	f, err := ioutil.ReadFile(fname)
-	if err != nil {
-		return nil, err
-	}
-	code := string(f)
-	parsed, err := p.Parse(code)
-	if err != nil {
-		return nil, err
-	}
-	return &readTable{
-		fname:  fname,
-		parsed: parsed,
-		key:    makeKey(code),
-	}, nil
 }
 
 func getFileName(caller string, imported string) (string, error) {
