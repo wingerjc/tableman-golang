@@ -157,8 +157,7 @@ func EvaluateExpression(e Evallable, ctx *ExecutionContext) (*ExpressionResult, 
 		ctx = NewRootExecutionContext()
 	}
 	stack := make([]ExpressionEval, 0)
-	stack = append(stack, e.Eval())
-	stack[0].SetContext(ctx)
+	stack = append(stack, e.Eval().SetContext(ctx.Child()))
 	for len(stack) > 0 {
 		// See if we need to push another resolution node on the current stack.
 		cur := stack[len(stack)-1]
