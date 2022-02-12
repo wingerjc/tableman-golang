@@ -239,8 +239,11 @@ func (l *listExpressionEval) HasNext() bool {
 	return l.index < len(l.config.items)
 }
 
-func (l *listExpressionEval) Next() ExpressionEval {
-	return l.config.items[l.index].Eval().SetContext(l.ctx.Child())
+func (l *listExpressionEval) Next() (ExpressionEval, error) {
+	if l.index >= len(l.config.items) {
+		return nil, fmt.Errorf("engine trying to evaluate too many sub-expressions for row")
+	}
+	return l.config.items[l.index].Eval().SetContext(l.ctx.Child()), nil
 }
 
 func (l *listExpressionEval) Provide(res *ExpressionResult) error {

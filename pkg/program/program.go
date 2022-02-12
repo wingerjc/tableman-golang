@@ -15,7 +15,7 @@ type Evallable interface {
 type ExpressionEval interface {
 	SetContext(ctx *ExecutionContext) ExpressionEval
 	HasNext() bool
-	Next() ExpressionEval
+	Next() (ExpressionEval, error)
 	Provide(res *ExpressionResult) error
 	Resolve() (*ExpressionResult, error)
 }
@@ -91,21 +91,21 @@ func NewIntResult(val int) *ExpressionResult {
 	}
 }
 
-func (r *ExpressionResult) MatchType(types ...ResultType) bool {
+func (e *ExpressionResult) MatchType(types ...ResultType) bool {
 	for _, t := range types {
-		if r.resultType == t {
+		if e.resultType == t {
 			return true
 		}
 	}
 	return false
 }
 
-func (r *ExpressionResult) IntVal() int {
-	return r.intVal
+func (e *ExpressionResult) IntVal() int {
+	return e.intVal
 }
 
-func (r *ExpressionResult) StringVal() string {
-	return r.strVal
+func (e *ExpressionResult) StringVal() string {
+	return e.strVal
 }
 
 const (
@@ -135,6 +135,10 @@ func (ctx *ExecutionContext) Child() *ExecutionContext {
 	}
 }
 
+func (ctx *ExecutionContext) SetPacks(packs TableMap) {
+	ctx.packs = packs
+}
+
 func (ctx *ExecutionContext) Set(key string, val *ExpressionResult) {
 	ctx.values[key] = val
 }
@@ -159,7 +163,11 @@ func EvaluateExpression(e Evallable, ctx *ExecutionContext) (*ExpressionResult, 
 		// See if we need to push another resolution node on the current stack.
 		cur := stack[len(stack)-1]
 		if cur.HasNext() {
-			stack = append(stack, cur.Next())
+			next, err := cur.Next()
+			if err != nil {
+				return nil, err
+			}
+			stack = append(stack, next)
 			continue
 		}
 		result, err := cur.Resolve()

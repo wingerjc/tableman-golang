@@ -123,7 +123,7 @@ func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (
 		}
 		tables[compiledTable.Name()] = compiledTable
 	}
-	return program.NewTablePack(parsed.Header.Name.FullName(), key, tables), nil
+	return program.NewTablePack(key, parsed.Header.Name.FullName(), tables), nil
 }
 
 func (c *Compiler) parseString(code string) (*parser.TableFile, error) {

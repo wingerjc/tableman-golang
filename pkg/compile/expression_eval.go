@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"fmt"
+
 	"github.com/wingerjc/tableman-golang/pkg/parser"
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
@@ -38,13 +40,27 @@ func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallab
 	case parser.VAR_EXPR_T:
 		return program.NewVariable(node.Variable.Name), nil
 	case parser.TABLE_EXPR_T:
-		params, err := getParams(node, packKeys)
-		if err != nil {
-			return nil, err
-		}
-		return program.NewTableCall(node.Call.Name.PackageName(), node.Call.Name.TableName(), params), nil
+		return compileTableCall(node, packKeys)
 	}
 	return nil, nil
+}
+
+func compileTableCall(node *parser.ValueExpr, packKeys nameMap) (program.Evallable, error) {
+	params, err := getParams(node, packKeys)
+	if err != nil {
+		return nil, err
+	}
+	packName := node.Call.Name.PackageName()
+	key, ok := packKeys[packName]
+	if !ok {
+		return nil, fmt.Errorf("could not find package '%s' did you forget or mistype an import?", packName)
+	}
+	return program.NewTableCall(
+		key,
+		packName,
+		node.Call.Name.TableName(),
+		params,
+	)
 }
 
 func getParams(node *parser.ValueExpr, packKeys nameMap) ([]program.Evallable, error) {

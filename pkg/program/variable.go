@@ -32,8 +32,8 @@ func (v *variableEval) HasNext() bool {
 	return false
 }
 
-func (v *variableEval) Next() ExpressionEval {
-	return nil
+func (v *variableEval) Next() (ExpressionEval, error) {
+	return nil, fmt.Errorf("variables have no sub-expressions")
 }
 
 func (v *variableEval) Provide(res *ExpressionResult) error {

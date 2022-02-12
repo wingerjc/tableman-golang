@@ -39,11 +39,11 @@ func (r *runtimeExpression) HasNext() bool {
 	return r.index <= len(r.keys)
 }
 
-func (r *runtimeExpression) Next() ExpressionEval {
+func (r *runtimeExpression) Next() (ExpressionEval, error) {
 	if r.index < len(r.keys) {
-		return r.expr.vars[r.currentKey()].Eval().SetContext(r.ctx.Child())
+		return r.expr.vars[r.currentKey()].Eval().SetContext(r.ctx.Child()), nil
 	}
-	return r.expr.expr.Eval().SetContext(r.ctx.Child())
+	return r.expr.expr.Eval().SetContext(r.ctx.Child()), nil
 }
 
 func (r *runtimeExpression) currentKey() string {

@@ -1,5 +1,7 @@
 package program
 
+import "fmt"
+
 type Number struct {
 	value int
 }
@@ -32,8 +34,8 @@ func (n *numberEval) HasNext() bool {
 	return false
 }
 
-func (n *numberEval) Next() ExpressionEval {
-	return nil
+func (n *numberEval) Next() (ExpressionEval, error) {
+	return nil, fmt.Errorf("number expressions should not have sub-expressions")
 }
 
 func (n *numberEval) Provide(res *ExpressionResult) error {

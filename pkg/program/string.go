@@ -1,5 +1,7 @@
 package program
 
+import "fmt"
+
 type String struct {
 	value   string
 	isLabel bool
@@ -34,8 +36,8 @@ func (s *stringEval) HasNext() bool {
 	return false
 }
 
-func (s *stringEval) Next() ExpressionEval {
-	return nil
+func (s *stringEval) Next() (ExpressionEval, error) {
+	return nil, fmt.Errorf("string values should not have sub-expressions")
 }
 
 func (s *stringEval) Provide(res *ExpressionResult) error {

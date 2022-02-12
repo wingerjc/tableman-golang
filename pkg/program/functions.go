@@ -70,9 +70,12 @@ func (g *EvalGenericFunc) HasNext() bool {
 	return g.index < len(g.vals)
 }
 
-func (g *EvalGenericFunc) Next() ExpressionEval {
+func (g *EvalGenericFunc) Next() (ExpressionEval, error) {
+	if g.index > len(g.funcDef.params) {
+		return nil, fmt.Errorf("accessing too many sub-expressions for function call")
+	}
 	res := g.funcDef.params[g.index]
-	return res.Eval().SetContext(g.ctx.Child())
+	return res.Eval().SetContext(g.ctx.Child()), nil
 }
 
 func (g *EvalGenericFunc) Provide(res *ExpressionResult) error {
@@ -190,14 +193,14 @@ func (i *ifFunctionEval) HasNext() bool {
 	return i.conditionResult == nil || i.result == nil
 }
 
-func (i *ifFunctionEval) Next() ExpressionEval {
+func (i *ifFunctionEval) Next() (ExpressionEval, error) {
 	if i.conditionResult == nil {
-		return i.config.condition.Eval().SetContext(i.ctx.Child())
+		return i.config.condition.Eval().SetContext(i.ctx.Child()), nil
 	}
 	if i.conditionResult.BoolVal() {
-		return i.config.trueVal.Eval().SetContext(i.ctx.Child())
+		return i.config.trueVal.Eval().SetContext(i.ctx.Child()), nil
 	}
-	return i.config.falseVal.Eval().SetContext(i.ctx.Child())
+	return i.config.falseVal.Eval().SetContext(i.ctx.Child()), nil
 }
 
 func (i *ifFunctionEval) Provide(res *ExpressionResult) error {
