@@ -45,9 +45,10 @@ func (i *ImportStatement) File() string {
 }
 
 type Table struct {
-	Pos    lexer.Position
-	Header *TableHeader `parser:"@@"`
-	Rows   []*TableRow  `parser:"(EOL @@)+"`
+	Pos       lexer.Position
+	Header    *TableHeader       `parser:"@@"`
+	Rows      []*TableRow        `parser:"((EOL @@)+"`
+	Generator *GeneratorTableRow `parser:"| (EOL@@))"`
 }
 
 type TableHeader struct {
@@ -60,6 +61,19 @@ type Tag struct {
 	Pos   lexer.Position
 	Key   LabelString `parser:"TagStart @@ TableDelimiter"`
 	Value LabelString `parser:"@@"`
+}
+
+type GeneratorTableRow struct {
+	Steps []*GeneratorStep `parser:"@@*"`
+}
+
+type GeneratorStep struct {
+	Values []string `parser:"GenStart @String (ListDelimiter EOL? @String)* GenEnd"`
+}
+
+func (s *GeneratorStep) StrVal(index int) string {
+	v := s.Values[index]
+	return v[1 : len(v)-1]
 }
 
 type TableRow struct {
@@ -106,7 +120,7 @@ func (l *LabelString) IsLabel() bool {
 
 type RangeList struct {
 	Pos    lexer.Position
-	Ranges []*NumberRange `parser:"@@ (','@@)*"`
+	Ranges []*NumberRange `parser:"@@ (ListDelimiter @@)*"`
 }
 
 // NumberRange represents a single number or a range.
@@ -219,6 +233,8 @@ var (
 			{Name: "TableDelimiter", Pattern: `:`},
 			{Name: "RangeDash", Pattern: `-`},
 			{Name: "TagStart", Pattern: `~`},
+			{Name: "GenStart", Pattern: `\[`},
+			{Name: "GenEnd", Pattern: `]`},
 		},
 		"Atomic": []lexer.Rule{
 			{Name: "TableName", Pattern: IDENTIFIER},

@@ -532,3 +532,39 @@ func TestExprVars(t *testing.T) {
 		pp.Println(val)
 	}
 }
+
+func TestGeneratorRows(t *testing.T) {
+	print := false
+	t.Parallel()
+	assert := assert.New(t)
+	parser, err := parserTypeWithDefaultOptions(&Table{})
+	assert.NoError(err)
+
+	val := &Table{}
+	strVal := `TableDef: foo
+	["a"]`
+	err = parser.ParseString("", strVal, val)
+	assert.NoError(err)
+	assert.Nil(val.Rows)
+	assert.Len(val.Generator.Steps, 1)
+	assert.Len(val.Generator.Steps[0].Values, 1)
+	if print {
+		pp.Println(val)
+	}
+
+	val = &Table{}
+	strVal = `TableDef: foo
+	["A","2","3","4", "5", "6", "7", "8", "9", "10" , "J" ,"Q",
+	"K"][" of "]["Clubs", "Spades", "Diamonds", "Hearts"]`
+	err = parser.ParseString("", strVal, val)
+	assert.NoError(err)
+	assert.Nil(val.Rows)
+	assert.Len(val.Generator.Steps, 3)
+	assert.Len(val.Generator.Steps[0].Values, 13)
+	assert.Len(val.Generator.Steps[1].Values, 1)
+	assert.Len(val.Generator.Steps[2].Values, 4)
+	assert.Equal(`"Diamonds"`, val.Generator.Steps[2].Values[2])
+	if print {
+		pp.Println(val)
+	}
+}

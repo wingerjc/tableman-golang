@@ -11,14 +11,54 @@ func CompileTable(t *parser.Table, random program.RandomSource, packKeys nameMap
 		tags[tag.Key.String()] = tag.Value.String()
 	}
 	rows := make([]*program.TableRow, 0)
-	for _, r := range t.Rows {
-		newRow, err := CompileRow(r, packKeys)
-		if err != nil {
-			return nil, err
+	if len(t.Rows) == 0 {
+		numSteps := len(t.Generator.Steps)
+		counts := make([]int, len(t.Generator.Steps))
+		rangeInt := 1
+		// Permute without recursion
+		for {
+			val := ""
+			for i := 0; i < numSteps; i++ {
+				val += t.Generator.Steps[i].StrVal(counts[i])
+			}
+			rows = append(rows, stringRow(val, rangeInt))
+			var i int
+			for i = 0; i < numSteps; i++ {
+				counts[i]++
+				if counts[i] == len(t.Generator.Steps[i].Values) {
+					counts[i] = 0
+				} else {
+					break
+				}
+			}
+			rangeInt++
+			if i == numSteps {
+				break
+			}
 		}
-		rows = append(rows, newRow)
+	} else {
+		for _, r := range t.Rows {
+			newRow, err := CompileRow(r, packKeys)
+			if err != nil {
+				return nil, err
+			}
+			rows = append(rows, newRow)
+		}
 	}
 	return program.NewTable(t.Header.Name, tags, rows, random), nil
+}
+
+func stringRow(val string, rangeInt int) *program.TableRow {
+	rangeVal := make([]*program.Range, 1)
+	rangeVal[0] = program.NewRange(rangeInt, rangeInt)
+	return program.NewTableRow(
+		"",
+		rangeVal,
+		1,
+		1,
+		false,
+		program.NewString(val, false),
+	)
 }
 
 func CompileRow(r *parser.TableRow, packKeys nameMap) (*program.TableRow, error) {

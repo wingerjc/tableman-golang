@@ -279,3 +279,35 @@ func TestDeckRoll(t *testing.T) {
 	_, err = table.DeckDraw()
 	assert.NoError(err)
 }
+
+func TestGeneratedTable(t *testing.T) {
+	assert := assert.New(t)
+	p, err := parser.GetTableParser()
+	assert.NoError(err)
+
+	rand := newTestRandSource()
+
+	expr := `TableDef: foo
+	["A","2","3","4", "5", "6", "7", "8", "9", "10" , "J" ,"Q",
+	"K"][" of "]["Clubs", "Spades", "Diamonds", "Hearts"]`
+	testCases := []int{0, 51, 14}
+	testExpect := []string{"A of Clubs", "K of Hearts", "2 of Spades"}
+	table := parseTable(expr, p, assert, rand)
+	assert.Equal(52, table.RowCount())
+	assert.Equal(52, table.TotalCount())
+
+	for i, val := range testCases {
+		rand.addMore(val)
+		row := table.Roll()
+		assert.NoError(err)
+		result, err := program.EvaluateExpression(row, nil)
+		assert.NoError(err)
+		assert.Equal(testExpect[i], result.StringVal())
+	}
+
+	row, err := table.IndexRoll(27)
+	assert.NoError(err)
+	result, err := program.EvaluateExpression(row, nil)
+	assert.NoError(err)
+	assert.Equal("A of Diamonds", result.StringVal())
+}
