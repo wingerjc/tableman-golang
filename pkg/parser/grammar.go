@@ -64,7 +64,7 @@ type Tag struct {
 }
 
 type GeneratorTableRow struct {
-	Steps []*GeneratorStep `parser:"@@*"`
+	Steps []*GeneratorStep `parser:"@@ (EOL? @@)*"`
 }
 
 type GeneratorStep struct {

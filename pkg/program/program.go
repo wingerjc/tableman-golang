@@ -22,16 +22,24 @@ type ExpressionEval interface {
 
 type Program struct {
 	packs TableMap
+	ctx   *ExecutionContext
 }
 
 func NewProgram(packs TableMap) *Program {
+	ctx := NewRootExecutionContext()
+	ctx.packs = packs
 	return &Program{
 		packs: packs,
+		ctx:   ctx,
 	}
 }
 
 func (p *Program) PackCount() int {
 	return len(p.packs)
+}
+
+func (p *Program) Eval(expr Evallable) (*ExpressionResult, error) {
+	return EvaluateExpression(expr, p.ctx.Child())
 }
 
 func NewTablePack(key string, name string, tables map[string]*Table) *TablePack {

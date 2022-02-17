@@ -4,7 +4,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io/ioutil"
+	"math/rand"
 	"path/filepath"
+	"time"
 
 	"github.com/wingerjc/tableman-golang/pkg/parser"
 	"github.com/wingerjc/tableman-golang/pkg/program"
@@ -49,6 +51,7 @@ func (c *Compiler) CompileString(code string) (*program.Program, error) {
 		parsed: parsed,
 	})
 }
+
 func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 	tableq := make([]*readTable, 0)
 	tableq = append(tableq, pack)
@@ -105,13 +108,24 @@ func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 			return nil, err
 		}
 		tableDefs[t.key] = pack
+		// keep specialtrack of the root pack for execution.
 		if first {
 			first = false
 			tableDefs[program.ROOT_PACK] = pack
 		}
 	}
-
+	rand.Seed(time.Now().Unix())
 	return program.NewProgram(tableDefs), nil
+}
+
+func (c *Compiler) CompileExpression(code string) (program.Evallable, error) {
+	parsed, err := c.exprParser.Parse(code)
+	if err != nil {
+		return nil, err
+	}
+	keys := make(nameMap)
+	keys[""] = program.ROOT_PACK
+	return CompileExpression(parsed, keys)
 }
 
 func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {

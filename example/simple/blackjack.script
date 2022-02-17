@@ -1,0 +1,2 @@
+e {concat(!poker(deck, shuffle), ", ", !poker(deck))}
+e { @count=10; !DrawNum() }
