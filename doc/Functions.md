@@ -1,5 +1,7 @@
 # Function Definitions
 
+[All Docs Index](index.md)
+
 ## Contents
 
 1. [String Functions](#string-functions)

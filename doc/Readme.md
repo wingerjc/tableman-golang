@@ -1,5 +1,7 @@
 # TableMan
 
+[All Docs Index](index.md)
+
 ## Contents
 
 1. [Quickstart](#quickstart)
