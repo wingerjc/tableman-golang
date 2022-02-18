@@ -9,6 +9,7 @@ func readFlags() *programOptions {
 	flag.StringVar(&result.ScriptFile, "script", "", "Script file to read command from.")
 	flag.BoolVar(&result.Interactive, "interact", true, "Whether to print command prompt.")
 	flag.BoolVar(&result.Echo, "echo", false, "Whether to echo each commmand to output.")
+	flag.StringVar(&result.CLIPrefix, "prefix", "$ ", "The prefix for command line input")
 
 	flag.Parse()
 	return result
@@ -20,4 +21,5 @@ type programOptions struct {
 	ScriptFile  string
 	Interactive bool
 	Echo        bool
+	CLIPrefix   string
 }
