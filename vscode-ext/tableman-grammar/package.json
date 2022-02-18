@@ -1,0 +1,25 @@
+{
+    "name": "tableman-grammar",
+    "displayName": "Tableman-grammar",
+    "description": "A grammar foe tableman text highlighting",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.64.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "tableman",
+            "aliases": ["tableman", "tableman"],
+            "extensions": [".tman"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "tableman",
+            "scopeName": "source.tableman.tablepack",
+            "path": "./syntaxes/tableman.tmLanguage.json"
+        }]
+    }
+}

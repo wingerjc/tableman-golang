@@ -1,0 +1,34 @@
+TablePack: example.simple.cards
+
+# Generate a normal poker deck (no jokers)
+# Individual sections of the generation can be on different lines.
+TableDef: poker
+["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+[" of "]["Clubs", "Spades", "Diamonds", "Hearts"]
+--------------------------
+# At least 3 dashes on their own line  is an
+# optional visual divider
+
+
+# Example of a recursive function call
+# @count should be set before calling.
+TableDef: DrawNum
+{ @count=sub(@count, 1);
+  if(
+      gt(@count,0),
+      concat(!poker(deck),", ", !DrawNum()),
+      !poker(deck)
+    )
+}
+--------------------------
+
+TableDef: suit
+~ example:"Example tag"
+~ "another tag":value
+Default w=2 c=10 1,2,3 c : "Clubs"
+w=2 c=10 4-6 s : "Spades"
+# Continue a line
+w=2 c=10 7-8,9 d: "Diamond" ->
+    "s"
+w=2 c=10 10-12 h: { "Hea" } "rts"
+--------------------------

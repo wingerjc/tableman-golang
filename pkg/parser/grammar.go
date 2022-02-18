@@ -143,7 +143,7 @@ type Roll struct {
 type Expression struct {
 	Pos   lexer.Position
 	Vars  []*VariableDef `parser:"ExprStart EOL? (@@ (ListDelimiter EOL? @@)* EndVarList EOL?)?"`
-	Value *ValueExpr     `parser:"@@ ExprEnd"`
+	Value *ValueExpr     `parser:"@@ EOL? ExprEnd"`
 }
 
 type VariableDef struct {
@@ -154,7 +154,7 @@ type VariableDef struct {
 type Call struct {
 	IsTable bool              `parser:"@TableCallSignal?"`
 	Name    ExtendedTableName `parser:"@@ CallStart EOL?"`
-	Params  []*ValueExpr      `parser:"@@? (ListDelimiter EOL? @@)* CallEnd"`
+	Params  []*ValueExpr      `parser:"@@? (ListDelimiter EOL? @@)* EOL? CallEnd"`
 }
 
 type ValueExpr struct {
