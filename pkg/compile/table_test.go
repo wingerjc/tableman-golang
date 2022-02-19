@@ -94,32 +94,12 @@ func TestTableConstruction(t *testing.T) {
 	assert.Error(err)
 }
 
-type testingRandSource struct {
-	vals []int
-}
-
-func (r *testingRandSource) Get(low int, high int) int {
-	result := r.vals[0]
-	r.vals = r.vals[1:]
-	return result
-}
-
-func (r *testingRandSource) addMore(vals ...int) {
-	r.vals = append(r.vals, vals...)
-}
-
-func newTestRandSource(val ...int) *testingRandSource {
-	return &testingRandSource{
-		vals: val,
-	}
-}
-
 func TestTableRoll(t *testing.T) {
 	assert := assert.New(t)
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	{1}
@@ -129,7 +109,7 @@ func TestTableRoll(t *testing.T) {
 	c=19:{5}
 	asdf:{6}`
 	table := parseTable(expr, p, assert, rand)
-	rand.addMore(5, 4, 3, 2, 1, 0)
+	rand.AddMore(5, 4, 3, 2, 1, 0)
 	result, err := program.EvaluateExpression(table.Roll(), nil)
 	assert.NoError(err)
 	assert.Equal("6", result.StringVal())
@@ -155,7 +135,7 @@ func TestWeightedRoll(t *testing.T) {
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	w=3: {1}
@@ -169,7 +149,7 @@ func TestWeightedRoll(t *testing.T) {
 	table := parseTable(expr, p, assert, rand)
 
 	for i, val := range testCases {
-		rand.addMore(val)
+		rand.AddMore(val)
 		result, err := program.EvaluateExpression(table.WeightedRoll(), nil)
 		assert.NoError(err)
 		assert.Equal(testExpect[i], result.StringVal())
@@ -181,7 +161,7 @@ func TestLabelRoll(t *testing.T) {
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	w=3 once: {1}
@@ -214,7 +194,7 @@ func TestIndexRoll(t *testing.T) {
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	1,2,6-8: {1}
@@ -246,7 +226,7 @@ func TestDeckRoll(t *testing.T) {
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	{1}
@@ -259,7 +239,7 @@ func TestDeckRoll(t *testing.T) {
 	table := parseTable(expr, p, assert, rand)
 
 	for i, val := range testCases {
-		rand.addMore(val)
+		rand.AddMore(val)
 		row, err := table.DeckDraw()
 		assert.NoError(err)
 		result, err := program.EvaluateExpression(row, nil)
@@ -270,7 +250,7 @@ func TestDeckRoll(t *testing.T) {
 	expr = `TableDef: bar
 	{2}`
 	table = parseTable(expr, p, assert, rand)
-	rand.addMore(0, 0, 0, 0)
+	rand.AddMore(0, 0, 0, 0)
 	_, err = table.DeckDraw()
 	assert.NoError(err)
 	_, err = table.DeckDraw()
@@ -285,7 +265,7 @@ func TestGeneratedTable(t *testing.T) {
 	p, err := parser.GetTableParser()
 	assert.NoError(err)
 
-	rand := newTestRandSource()
+	rand := program.NewTestRandSource()
 
 	expr := `TableDef: foo
 	["A","2","3","4", "5", "6", "7", "8", "9", "10" , "J" ,"Q",
@@ -297,7 +277,7 @@ func TestGeneratedTable(t *testing.T) {
 	assert.Equal(52, table.TotalCount())
 
 	for i, val := range testCases {
-		rand.addMore(val)
+		rand.AddMore(val)
 		row := table.Roll()
 		assert.NoError(err)
 		result, err := program.EvaluateExpression(row, nil)

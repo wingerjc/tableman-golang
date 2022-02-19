@@ -30,5 +30,6 @@ w=2 c=10 4-6 s : "Spades"
 # Continue a line
 w=2 c=10 7-8,9 d: "Diamond" ->
     "s"
+# Values concatenate together.
 w=2 c=10 10-12 h: { "Hea" } "rts"
 --------------------------

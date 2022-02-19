@@ -41,7 +41,14 @@ func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallab
 		return program.NewVariable(node.Variable.Name), nil
 	case parser.TABLE_EXPR_T:
 		return compileTableCall(node, packKeys)
+	case parser.ROLL_EXPR_T:
+		return compileRollExpr(node)
 	}
+	return nil, fmt.Errorf("unkown expression type %s", node.GetStringType())
+}
+
+func compileRollExpr(node *parser.ValueExpr) (program.Evallable, error) {
+
 	return nil, nil
 }
 

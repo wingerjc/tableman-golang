@@ -19,6 +19,26 @@ func (r *DefaultRandSource) Get(low int, high int) int {
 	return rand.Intn(high-low) + low
 }
 
+type TestingRandSource struct {
+	vals []int
+}
+
+func (r *TestingRandSource) Get(low int, high int) int {
+	result := r.vals[0]
+	r.vals = r.vals[1:]
+	return result
+}
+
+func (r *TestingRandSource) AddMore(vals ...int) {
+	r.vals = append(r.vals, vals...)
+}
+
+func NewTestRandSource(val ...int) *TestingRandSource {
+	return &TestingRandSource{
+		vals: val,
+	}
+}
+
 type Table struct {
 	name         string
 	tags         map[string]string

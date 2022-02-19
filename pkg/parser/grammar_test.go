@@ -390,18 +390,23 @@ func TestRoll(t *testing.T) {
 	err = parser.ParseString("", `10d20h5.mode?`, val)
 	assert.NoError(err)
 	assert.Equal("10d20", val.RollDice)
-	assert.Equal("h5", val.RollSubset)
+	assert.Equal("h", val.RollSubset)
+	assert.Equal(5, val.SubsetCount)
 	assert.Equal(".mode", val.RollFuncAggr)
+	assert.False(val.Print)
 	if print {
 		pp.Println(val)
 	}
 
 	val = &Roll{}
-	err = parser.ParseString("", `10d20.+1x2.-20x1?`, val)
+	err = parser.ParseString("", `10d20.+1x2.-20x1.str?`, val)
 	assert.NoError(err)
 	assert.Equal("10d20", val.RollDice)
 	assert.Len(val.RollCountAggrs, 2)
-	assert.Equal(".+1x2", val.RollCountAggrs[0])
+	assert.Equal(".+", val.RollCountAggrs[0].Sign)
+	assert.Equal(1, val.RollCountAggrs[0].Number)
+	assert.Equal(2, val.RollCountAggrs[0].Multiplier)
+	assert.True(val.Print)
 	if print {
 		pp.Println(val)
 	}

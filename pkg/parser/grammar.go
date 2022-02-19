@@ -20,6 +20,15 @@ const (
 var (
 	DEFAULT_LEXER = participle.Lexer(fileLexer)
 	DEFAULT_ELIDE = participle.Elide("Comment", "Whitespace", "CommentLine")
+	STR_EXPR_TYPE = map[ValueExprType]string{
+		NONE_EXPR_T:  "None",
+		ROLL_EXPR_T:  "Roll",
+		LABEL_EXPR_T: "Label",
+		NUM_EXPR_T:   "Number",
+		TABLE_EXPR_T: "Table",
+		FUNC_EXPR_T:  "Function",
+		VAR_EXPR_T:   "Variable",
+	}
 )
 
 type TableFile struct {
@@ -134,10 +143,18 @@ type NumberRange struct {
 
 type Roll struct {
 	Pos            lexer.Position
-	RollDice       string   `parser:"@Roll"`
-	RollSubset     string   `parser:"@RollSubset? ("`
-	RollFuncAggr   string   `parser:"@RollFuncAggr"`
-	RollCountAggrs []string `parser:"|(@RollCountAggr+))? RollEnd"`
+	RollDice       string           `parser:"@Roll"`
+	RollSubset     string           `parser:"(@RollSubset"`
+	SubsetCount    int              `parser:"@Number)? ("`
+	RollFuncAggr   string           `parser:"@RollFuncAggr"`
+	RollCountAggrs []*RollCountAggr `parser:"|(@@+))?"`
+	Print          bool             `parser:"@RollCast? RollEnd"`
+}
+
+type RollCountAggr struct {
+	Sign       string `parser:"@RollCountSign"`
+	Number     int    `parser:"@Number"`
+	Multiplier int    `parser:"RollCountMultiplier @Number"`
 }
 
 type Expression struct {
@@ -187,6 +204,10 @@ func (v *ValueExpr) GetType() ValueExprType {
 		v.exprType = VAR_EXPR_T
 	}
 	return v.exprType
+}
+
+func (v *ValueExpr) GetStringType() string {
+	return STR_EXPR_TYPE[v.GetType()]
 }
 
 type VarName struct {
@@ -242,7 +263,7 @@ var (
 			{Name: "CallStart", Pattern: `\(`, Action: lexer.Push("Call")},
 			{Name: "ExprStart", Pattern: `{`, Action: lexer.Push("Expr")},
 			{Name: "String", Pattern: `"(\\"|[^"])*"`},
-			{Name: "Number", Pattern: NATURAL_NUMBER},
+			lexer.Include("NumberRule"),
 			{Name: "TableCallSignal", Pattern: `\!`},
 			{Name: "VarPrefix", Pattern: `@`},
 			{Name: "PkgDelimiter", Pattern: `\.`},
@@ -250,10 +271,13 @@ var (
 			{Name: "EOL", Pattern: `\r?\n`},
 		},
 		"Roll": []lexer.Rule{
-			{Name: "RollSubset", Pattern: `(l|h)` + NATURAL_NUMBER},
-			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode|roll)`},
-			{Name: "RollCountAggr", Pattern: `\.[+-]` + NATURAL_NUMBER + `(x` + NATURAL_NUMBER + `)?`},
+			{Name: "RollSubset", Pattern: `(l|h)`},
+			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode)`},
+			{Name: "RollCountSign", Pattern: `\.[+-]`},
+			{Name: "RollCountMultiplier", Pattern: `x`},
+			{Name: "RollCast", Pattern: `\.str`},
 			{Name: "RollEnd", Pattern: `\?`, Action: lexer.Pop()},
+			lexer.Include("NumberRule"),
 		},
 		"Expr": []lexer.Rule{
 			lexer.Include("Whitespace"),
@@ -276,6 +300,9 @@ var (
 		},
 		"ExprValues": []lexer.Rule{
 			{Name: "Integer", Pattern: INTEGER},
+		},
+		"NumberRule": []lexer.Rule{
+			{Name: "Number", Pattern: NATURAL_NUMBER},
 		},
 	})
 )
