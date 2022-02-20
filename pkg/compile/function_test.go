@@ -39,11 +39,20 @@ func assertRuntimeFail(expr string, p *parser.ExpressionParser, assert *assert.A
 }
 
 func shouldParseExpression(expr string, p *parser.ExpressionParser, assert *assert.Assertions) *program.ExpressionResult {
+	return shouldParseExprWithContext(expr, p, program.NewRootExecutionContext(), assert)
+}
+
+func shouldParseExprWithContext(
+	expr string,
+	p *parser.ExpressionParser,
+	ctx *program.ExecutionContext,
+	assert *assert.Assertions,
+) *program.ExpressionResult {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
 	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
 	assert.NoError(err)
-	res, err := program.EvaluateExpression(prog, program.NewRootExecutionContext())
+	res, err := program.EvaluateExpression(prog, ctx)
 	assert.NoError(err)
 	return res
 }

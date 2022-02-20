@@ -42,14 +42,39 @@ func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallab
 	case parser.TABLE_EXPR_T:
 		return compileTableCall(node, packKeys)
 	case parser.ROLL_EXPR_T:
-		return compileRollExpr(node)
+		return compileRollExpr(node.Roll)
 	}
 	return nil, fmt.Errorf("unkown expression type %s", node.GetStringType())
 }
 
-func compileRollExpr(node *parser.ValueExpr) (program.Evallable, error) {
-	// res := program.NewRoll()
-	return nil, nil
+func compileRollExpr(node *parser.Roll) (program.Evallable, error) {
+	count, sides, err := node.Dice()
+	if err != nil {
+		return nil, err
+	}
+	res := program.NewRoll(count, sides).
+		WithPrint(node.Print).
+		WithAggr(node.FnAggr())
+
+	if len(node.RollCountAggrs) > 0 {
+		aggrMap := make(map[int]*program.RollCountAggr)
+		aggrList := make([]*program.RollCountAggr, 0)
+		for _, a := range node.RollCountAggrs {
+			if _, ok := aggrMap[a.Number]; ok {
+				return nil, fmt.Errorf("double roll count aggrs assigned to number %d", a.Number)
+			}
+			r := program.NewRollCountAggr(a.Number, a.FinalMult())
+			aggrMap[a.Number] = r
+			aggrList = append(aggrList, r)
+		}
+		res = res.WithCountAggr(aggrList)
+	}
+
+	if len(node.RollSubset) > 0 {
+		res = res.WithSelector(program.NewRollSelect(node.RollSubset == "h", node.SubsetCount))
+	}
+
+	return res, nil
 }
 
 func compileTableCall(node *parser.ValueExpr, packKeys nameMap) (program.Evallable, error) {

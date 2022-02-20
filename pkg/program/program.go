@@ -138,6 +138,13 @@ func (h *RollHistory) AddRollToHistory(roll string) {
 	h.rollResults = append(h.rollResults, roll)
 }
 
+func (h *RollHistory) LatestRoll() string {
+	if len(h.rollResults) == 0 {
+		return ""
+	}
+	return h.rollResults[len(h.rollResults)-1]
+}
+
 type ExecutionContext struct {
 	*RollHistory
 	parent *ExecutionContext

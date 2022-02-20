@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/alecthomas/participle/v2"
@@ -151,10 +152,37 @@ type Roll struct {
 	Print          bool             `parser:"@RollCast? RollEnd"`
 }
 
+func (r *Roll) Dice() (count int, sides int, err error) {
+	nums := strings.Split(r.RollDice, "d")
+	count, err = strconv.Atoi(nums[0])
+	if err != nil {
+		return
+	}
+	sides, err = strconv.Atoi(nums[1])
+	return
+}
+
+func (r *Roll) FnAggr() string {
+	if len(r.RollFuncAggr) == 0 {
+		return ""
+	}
+	return r.RollFuncAggr[1:]
+}
+
 type RollCountAggr struct {
 	Sign       string `parser:"@RollCountSign"`
 	Number     int    `parser:"@Number"`
-	Multiplier int    `parser:"RollCountMultiplier @Number"`
+	Multiplier int    `parser:"(RollCountMultiplier @Number)?"`
+}
+
+func (r *RollCountAggr) FinalMult() int {
+	if r.Multiplier == 0 {
+		r.Multiplier = 1
+	}
+	if r.Sign[1:] == "-" {
+		return -1 * r.Multiplier
+	}
+	return r.Multiplier
 }
 
 type Expression struct {
@@ -272,7 +300,7 @@ var (
 		},
 		"Roll": []lexer.Rule{
 			{Name: "RollSubset", Pattern: `(l|h)`},
-			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode)`},
+			{Name: "RollFuncAggr", Pattern: `\.(min|max|sum|avg|mode|median)`},
 			{Name: "RollCountSign", Pattern: `\.[+-]`},
 			{Name: "RollCountMultiplier", Pattern: `x`},
 			{Name: "RollCast", Pattern: `\.str`},

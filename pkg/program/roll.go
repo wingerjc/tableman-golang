@@ -172,6 +172,16 @@ func (r *rollEval) Resolve() (*ExpressionResult, error) {
 			}
 		}
 		res.value = cur
+	case "median":
+		if len(res.keep) == 0 {
+			break
+		}
+		mid := len(res.keep) / 2
+		if len(res.keep)%2 == 1 {
+			res.value = res.keep[mid]
+		} else {
+			res.value = (res.keep[mid-1] + res.keep[mid]) / 2
+		}
 	case "avg":
 		sum := 0
 		for _, v := range res.keep {
@@ -197,13 +207,15 @@ func (r *rollEval) Resolve() (*ExpressionResult, error) {
 	default:
 		return nil, fmt.Errorf("no roll aggregator matches '%s'", r.def.aggrFn)
 	}
+	strResult := printResult(r.def, res)
+	r.ctx.AddRollToHistory(strResult)
 	if r.def.print {
-		return printResult(r.def, res)
+		return NewStringResult(strResult), nil
 	}
 	return NewIntResult(res.value), nil
 }
 
-func printResult(def *Roll, res *rollResult) (*ExpressionResult, error) {
+func printResult(def *Roll, res *rollResult) string {
 	keepStr := make([]string, 0)
 	for _, v := range res.keep {
 		c := ""
@@ -227,10 +239,10 @@ func printResult(def *Roll, res *rollResult) (*ExpressionResult, error) {
 		for _, v := range res.drop {
 			dlist = append(dlist, fmt.Sprintf("%d", v))
 		}
-		d = fmt.Sprintf("drop(%s)", strings.Join(dlist, ", "))
+		d = fmt.Sprintf(" drop(%s)", strings.Join(dlist, ", "))
 	}
 	result := fmt.Sprintf(
-		"%d: %dd%d %s(%s) %s",
+		"%d: %dd%d %s(%s)%s",
 		res.value,
 		def.diceCount,
 		def.diceSides,
@@ -238,7 +250,7 @@ func printResult(def *Roll, res *rollResult) (*ExpressionResult, error) {
 		strings.Join(keepStr, ", "),
 		d,
 	)
-	return NewStringResult(result), nil
+	return result
 }
 
 type rollResult struct {
