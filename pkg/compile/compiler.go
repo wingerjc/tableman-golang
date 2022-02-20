@@ -131,7 +131,7 @@ func (c *Compiler) CompileExpression(code string) (program.Evallable, error) {
 func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {
 	tables := make(map[string]*program.Table)
 	for _, t := range parsed.Tables {
-		compiledTable, err := CompileTable(t, &program.DefaultRandSource{}, tableKeys)
+		compiledTable, err := CompileTable(t, tableKeys)
 		if err != nil {
 			return nil, err
 		}

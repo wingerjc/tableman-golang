@@ -48,7 +48,7 @@ func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallab
 }
 
 func compileRollExpr(node *parser.ValueExpr) (program.Evallable, error) {
-
+	// res := program.NewRoll()
 	return nil, nil
 }
 

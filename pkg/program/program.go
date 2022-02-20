@@ -122,24 +122,56 @@ const (
 	INT_RESULT    = 2
 )
 
+type RollHistory struct {
+	rollResults []string
+}
+
+func (h *RollHistory) ClearRolls() {
+	h.rollResults = make([]string, 0)
+}
+
+func (h *RollHistory) GetRollHistory() []string {
+	return h.rollResults[:]
+}
+
+func (h *RollHistory) AddRollToHistory(roll string) {
+	h.rollResults = append(h.rollResults, roll)
+}
+
 type ExecutionContext struct {
+	*RollHistory
 	parent *ExecutionContext
 	values map[string]*ExpressionResult
 	packs  TableMap
+	rand   RandomSource
 }
 
 func NewRootExecutionContext() *ExecutionContext {
 	return &ExecutionContext{
+		RollHistory: &RollHistory{
+			rollResults: make([]string, 0),
+		},
 		parent: nil,
 		values: make(map[string]*ExpressionResult),
+		rand:   &DefaultRandSource{},
 	}
+}
+
+func (ctx *ExecutionContext) SetRandom(r RandomSource) {
+	ctx.rand = r
+}
+
+func (ctx *ExecutionContext) Rand(low int, high int) int {
+	return ctx.rand.Get(low, high)
 }
 
 func (ctx *ExecutionContext) Child() *ExecutionContext {
 	return &ExecutionContext{
-		parent: ctx,
-		values: make(map[string]*ExpressionResult),
-		packs:  ctx.packs,
+		RollHistory: ctx.RollHistory,
+		parent:      ctx,
+		values:      make(map[string]*ExpressionResult),
+		packs:       ctx.packs,
+		rand:        ctx.rand,
 	}
 }
 

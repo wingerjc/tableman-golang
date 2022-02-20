@@ -43,7 +43,7 @@ func shouldParseExpression(expr string, p *parser.ExpressionParser, assert *asse
 	assert.NoError(err)
 	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
 	assert.NoError(err)
-	res, err := program.EvaluateExpression(prog, nil)
+	res, err := program.EvaluateExpression(prog, program.NewRootExecutionContext())
 	assert.NoError(err)
 	return res
 }

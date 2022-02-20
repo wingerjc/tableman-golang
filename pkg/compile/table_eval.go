@@ -5,7 +5,7 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
-func CompileTable(t *parser.Table, random program.RandomSource, packKeys nameMap) (*program.Table, error) {
+func CompileTable(t *parser.Table, packKeys nameMap) (*program.Table, error) {
 	tags := make(map[string]string)
 	for _, tag := range t.Header.Tags {
 		tags[tag.Key.String()] = tag.Value.String()
@@ -45,7 +45,7 @@ func CompileTable(t *parser.Table, random program.RandomSource, packKeys nameMap
 			rows = append(rows, newRow)
 		}
 	}
-	return program.NewTable(t.Header.Name, tags, rows, random), nil
+	return program.NewTable(t.Header.Name, tags, rows), nil
 }
 
 func stringRow(val string, rangeInt int) *program.TableRow {

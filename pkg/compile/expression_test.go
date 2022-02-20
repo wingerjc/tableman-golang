@@ -85,7 +85,7 @@ func TestTableCallCompile(t *testing.T) {
 	c=2 15 first: "red"`
 	tParsed, err := tParser.Parse(tCode)
 	assert.NoError(err)
-	table, err := CompileTable(tParsed, &program.DefaultRandSource{}, packKeys)
+	table, err := CompileTable(tParsed, packKeys)
 	assert.NoError(err)
 
 	tableMap := make(map[string]*program.Table)
@@ -95,6 +95,7 @@ func TestTableCallCompile(t *testing.T) {
 	packMap["bar"] = pack
 	eCtx := program.NewRootExecutionContext()
 	eCtx.SetPacks(packMap)
+	eCtx.SetRandom(&program.DefaultRandSource{})
 
 	ctx := &tableCallTestContext{
 		packKeys: packKeys,

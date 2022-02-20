@@ -13,10 +13,9 @@ type Roll struct {
 	selector   *RollSelect
 	aggrFn     string
 	countAggrs []*RollCountAggr
-	rand       RandomSource
 }
 
-func NewRoll(count int, sides int, rand RandomSource) *Roll {
+func NewRoll(count int, sides int) *Roll {
 	return &Roll{
 		diceCount:  count,
 		diceSides:  sides,
@@ -24,7 +23,6 @@ func NewRoll(count int, sides int, rand RandomSource) *Roll {
 		aggrFn:     "",
 		countAggrs: make([]*RollCountAggr, 0),
 		print:      false,
-		rand:       rand,
 	}
 }
 
@@ -111,7 +109,7 @@ func (r *rollEval) Resolve() (*ExpressionResult, error) {
 		drop:  make([]int, 0),
 	}
 	for i := 0; i < r.def.diceCount; i++ {
-		res.keep = append(res.keep, r.def.rand.Get(1, r.def.diceSides+1))
+		res.keep = append(res.keep, r.ctx.Rand(1, r.def.diceSides+1))
 	}
 	sort.Ints(res.keep)
 	if r.def.selector != nil {

@@ -49,10 +49,9 @@ type Table struct {
 	totalCount   int
 	currentCount int
 	defaultRow   int
-	random       RandomSource
 }
 
-func NewTable(name string, tags map[string]string, rows []*TableRow, random RandomSource) *Table {
+func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 	result := &Table{
 		name:         name,
 		tags:         tags,
@@ -63,7 +62,6 @@ func NewTable(name string, tags map[string]string, rows []*TableRow, random Rand
 		totalCount:   0,
 		currentCount: 0,
 		defaultRow:   -1,
-		random:       random,
 	}
 	for i, r := range result.rows {
 		if len(r.label) > 0 {
@@ -84,21 +82,29 @@ func NewTable(name string, tags map[string]string, rows []*TableRow, random Rand
 }
 
 func (t *Table) Roll() Evallable {
-	index := t.random.Get(0, len(t.rows))
-	return t.rows[index].Value()
+	return &rowFuture{
+		fn: func(ctx *ExecutionContext) Evallable {
+			index := ctx.Rand(0, len(t.rows))
+			return t.rows[index].Value()
+		},
+	}
 }
 
 func (t *Table) WeightedRoll() Evallable {
-	roll := t.random.Get(0, t.totalWeight)
-	i := 0
-	for {
-		cur := t.rows[i].Weight
-		pp.Println(roll, cur)
-		if t.rows[i].Weight() > roll {
-			return t.rows[i].Value()
-		}
-		roll -= t.rows[i].Weight()
-		i++
+	return &rowFuture{
+		fn: func(ctx *ExecutionContext) Evallable {
+			roll := ctx.Rand(0, t.totalWeight)
+			i := 0
+			for {
+				cur := t.rows[i].Weight
+				pp.Println(roll, cur)
+				if t.rows[i].Weight() > roll {
+					return t.rows[i].Value()
+				}
+				roll -= t.rows[i].Weight()
+				i++
+			}
+		},
 	}
 }
 
@@ -118,19 +124,23 @@ func (t *Table) DeckDraw() (Evallable, error) {
 		return nil, fmt.Errorf("deck draw called too many times without shuffle on table '%s'", t.name)
 	}
 
-	roll := t.random.Get(0, t.currentCount)
-	for _, r := range t.rows {
-		if r.currentCount == 0 {
-			continue
-		}
-		if roll < r.currentCount {
-			r.currentCount--
-			t.currentCount--
-			return r.Value(), nil
-		}
-		roll -= r.currentCount
-	}
-	return nil, fmt.Errorf("rolled too high on deck draw for table '%s'", t.name)
+	return &rowFuture{
+		fn: func(ctx *ExecutionContext) Evallable {
+			roll := ctx.Rand(0, t.currentCount)
+			for _, r := range t.rows {
+				if r.currentCount == 0 {
+					continue
+				}
+				if roll < r.currentCount {
+					r.currentCount--
+					t.currentCount--
+					return r.Value()
+				}
+				roll -= r.currentCount
+			}
+			return nil
+		},
+	}, nil
 }
 
 func (t *Table) Shuffle() {
@@ -178,6 +188,34 @@ func (t *Table) Default() (Evallable, error) {
 		return nil, fmt.Errorf("no default set for table '%s'", t.name)
 	}
 	return t.rows[t.defaultRow].Value(), nil
+}
+
+type rowFuture struct {
+	fn func(ctx *ExecutionContext) Evallable
+}
+
+func (r *rowFuture) Eval() ExpressionEval {
+	return r
+}
+
+func (r *rowFuture) SetContext(ctx *ExecutionContext) ExpressionEval {
+	return r.fn(ctx).Eval().SetContext(ctx)
+}
+
+func (r *rowFuture) HasNext() bool {
+	return false
+}
+
+func (r *rowFuture) Next() (ExpressionEval, error) {
+	return nil, fmt.Errorf("table row future has no subexpressions")
+}
+
+func (r *rowFuture) Provide(res *ExpressionResult) error {
+	return fmt.Errorf("can't provide value to table row future")
+}
+
+func (r *rowFuture) Resolve() (*ExpressionResult, error) {
+	return nil, fmt.Errorf("can't resolve table row future")
 }
 
 type TableRow struct {

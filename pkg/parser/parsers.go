@@ -44,6 +44,26 @@ func GetExpressionParser() (*ExpressionParser, error) {
 	}, nil
 }
 
+type RollParser struct {
+	p *participle.Parser
+}
+
+func (r *RollParser) Parse(code string) (*Roll, error) {
+	res := &Roll{}
+	err := r.p.ParseString("", code, res)
+	return res, err
+}
+
+func GetRollParser() (*RollParser, error) {
+	p, err := participle.Build(&Roll{}, DEFAULT_LEXER, DEFAULT_ELIDE)
+	if err != nil {
+		return nil, err
+	}
+	return &RollParser{
+		p: p,
+	}, nil
+}
+
 type RowParser struct {
 	p *participle.Parser
 }
