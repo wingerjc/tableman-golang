@@ -100,8 +100,8 @@ func TestTableRoll(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	{1}
@@ -138,8 +138,8 @@ func TestWeightedRoll(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	w=3: {1}
@@ -166,8 +166,8 @@ func TestLabelRoll(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	w=3 once: {1}
@@ -201,8 +201,8 @@ func TestIndexRoll(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	1,2,6-8: {1}
@@ -235,8 +235,8 @@ func TestDeckRoll(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	{1}
@@ -280,8 +280,8 @@ func TestGeneratedTable(t *testing.T) {
 	assert.NoError(err)
 
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	expr := `TableDef: foo
 	["A","2","3","4", "5", "6", "7", "8", "9", "10" , "J" ,"Q",

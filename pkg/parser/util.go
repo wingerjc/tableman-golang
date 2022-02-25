@@ -16,6 +16,8 @@ func setupTypeTable() {
 	}
 }
 
+// PrintTokens can be used for debug to print out up to
+// the first `count` tokens parsed from the input stream.
 func PrintTokens(in string, count int) {
 	setupTypeTable()
 	l, err := fileLexer.LexString("", in)

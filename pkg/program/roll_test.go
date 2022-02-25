@@ -9,8 +9,8 @@ import (
 func TestBasicRoll(t *testing.T) {
 	assert := assert.New(t)
 	random := NewTestRandSource()
-	ctx := NewRootExecutionContext()
-	ctx.SetRandom(random)
+	ctx := NewRootExecutionContext().
+		SetRandom(random)
 
 	random.AddMore(3, 4)
 	r, err := NewRoll(2, 5).Set().Eval().SetContext(ctx).Resolve()

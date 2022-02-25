@@ -9,8 +9,8 @@ import (
 func TestBasicRolls(t *testing.T) {
 	p, assert := setupParser(t)
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	rand.AddMore(1)
 	expr := `{ 1d1.mode? }`
@@ -36,8 +36,8 @@ func TestBasicRolls(t *testing.T) {
 func TestRollFnAggs(t *testing.T) {
 	p, assert := setupParser(t)
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	rand.AddMore(4, 3, 2, 2, 3, 3)
 	expr := `{ 6d8.mode? }`
@@ -83,8 +83,8 @@ func TestRollFnAggs(t *testing.T) {
 func TestRollCountAggrs(t *testing.T) {
 	p, assert := setupParser(t)
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	rand.AddMore(4, 3, 2, 2, 3, 3)
 	expr := `{ 6d8.+2.+3? }`
@@ -105,8 +105,8 @@ func TestRollCountAggrs(t *testing.T) {
 func TestRollDropValues(t *testing.T) {
 	p, assert := setupParser(t)
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	rand.AddMore(4, 3, 2, 2, 3, 3)
 	expr := `{ 6d8l4? }`
@@ -122,8 +122,8 @@ func TestRollDropValues(t *testing.T) {
 func TestRollStringValue(t *testing.T) {
 	p, assert := setupParser(t)
 	rand := program.NewTestRandSource()
-	ctx := program.NewRootExecutionContext()
-	ctx.SetRandom(rand)
+	ctx := program.NewRootExecutionContext().
+		SetRandom(rand)
 
 	rand.AddMore(4, 3, 2, 2, 3, 3)
 	expr := `{ 6d8l4.str? }`

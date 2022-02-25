@@ -9,51 +9,89 @@ import (
 )
 
 const (
-	NONE_EXPR_T  = ValueExprType(0)
-	ROLL_EXPR_T  = ValueExprType(1)
-	LABEL_EXPR_T = ValueExprType(2)
-	NUM_EXPR_T   = ValueExprType(3)
-	TABLE_EXPR_T = ValueExprType(4)
-	FUNC_EXPR_T  = ValueExprType(5)
-	VAR_EXPR_T   = ValueExprType(6)
+	// NoneExprT the type value for an untyped value expression.
+	NoneExprT = ValueExprType(0)
+	// RollExprT the type value for an roll value expression.
+	RollExprT = ValueExprType(1)
+	// LabelExprT the type value for a label/string value expression.
+	LabelExprT = ValueExprType(2)
+	// NumExprT the type value for a numeric value expression.
+	NumExprT = ValueExprType(3)
+	// TableExprT the type value for a table call value expression.
+	TableExprT = ValueExprType(4)
+	// FuncExprT the type value for a function call value expression.
+	FuncExprT = ValueExprType(5)
+	// VarExprT the type value for a variable value expression.
+	VarExprT = ValueExprType(6)
 )
 
 var (
-	DEFAULT_LEXER = participle.Lexer(fileLexer)
-	DEFAULT_ELIDE = participle.Elide("Comment", "Whitespace", "CommentLine")
-	STR_EXPR_TYPE = map[ValueExprType]string{
-		NONE_EXPR_T:  "None",
-		ROLL_EXPR_T:  "Roll",
-		LABEL_EXPR_T: "Label",
-		NUM_EXPR_T:   "Number",
-		TABLE_EXPR_T: "Table",
-		FUNC_EXPR_T:  "Function",
-		VAR_EXPR_T:   "Variable",
+	// DefaultLexer is a default lexer for the tableman language.
+	DefaultLexer = participle.Lexer(fileLexer)
+	// DefaultElide the default list of tokens to elide from AST parsing.
+	DefaultElide = participle.Elide("Comment", "Whitespace", "CommentLine")
+	// ExprTypeStr a human readable map of expression value types for debugging.
+	ExprTypeStr = map[ValueExprType]string{
+		NoneExprT:  "None",
+		RollExprT:  "Roll",
+		LabelExprT: "Label",
+		NumExprT:   "Number",
+		TableExprT: "Table",
+		FuncExprT:  "Function",
+		VarExprT:   "Variable",
 	}
 )
 
+// TableFile is an AST node that incorporates a whole table source file.
+//
+//  Pattern:
+//    <EOL>*
+//    <FileHeader>
+//    (<EOL>+ <Table> <TableBarrier>?)*
+// `TableBarrier` is at least 3 dashes on its own line.
 type TableFile struct {
 	Pos    lexer.Position
 	Header *FileHeader `parser:"EOL* @@"`
 	Tables []*Table    `parser:"(EOL+ @@? TableBarrier?)*"`
 }
 
+// FileHeader is an AST node that describes a table file.
+//
+//  Pattern:
+//    TablePack: <ExtendedTableName>
+//    (<EOL> <ImportStatement>)*
 type FileHeader struct {
 	Pos     lexer.Position
 	Name    *ExtendedTableName `parser:"PkgStart @@"`
 	Imports []*ImportStatement `parser:"(EOL @@)*"`
 }
 
+// ImportStatement is an AST node that denotes an imported file.
+//
+//  Pattern:
+//    Import: <FilePath> (As: <ExtendedTableName>)?
 type ImportStatement struct {
 	Pos      lexer.Position
 	FileName string             `parser:"Import @FilePath"`
 	Alias    *ExtendedTableName `parser:"(PackAlias @@)?"`
 }
 
+// File returns the actual file name and not the parsed token.
 func (i *ImportStatement) File() string {
 	return i.FileName[2 : len(i.FileName)-1]
 }
 
+// Table is an AST node that denotes a single table.
+//
+// It can be provided either a list of table rows or a single generator row to
+// programatically create rows from.
+//
+//  Pattern:
+//    <TableHeader>
+//    (
+//        (<EOL> <TableRow>)+
+//      | (<EOL> <GeneratorTableRow>)
+//    )
 type Table struct {
 	Pos       lexer.Position
 	Header    *TableHeader       `parser:"@@"`
@@ -61,31 +99,64 @@ type Table struct {
 	Generator *GeneratorTableRow `parser:"| (EOL@@))"`
 }
 
+// TableHeader is an AST node that denotes meta information about a table.
+//
+// Tags are currently transferred in compilation, but not otherwise accessible in the
+//  execution engine. This may change in the future.
+//
+//  Pattern:
+//    TableDef: <TableName>
+//    (<EOL>+ <Tag>)*
 type TableHeader struct {
 	Pos  lexer.Position
 	Name string `parser:"TableStart @TableName"`
 	Tags []*Tag `parser:"(EOL+ @@)*"`
 }
 
+// Tag is an AST node that denotes a meta tag.
+//
+// Useful for tagging author, source, copyright/license, or other information.
+//
+//  Pattern:
+//    ~ <Label>: <Label>
 type Tag struct {
 	Pos   lexer.Position
 	Key   LabelString `parser:"TagStart @@ TableDelimiter"`
 	Value LabelString `parser:"@@"`
 }
 
+// GeneratorTableRow is an AST node that denotes an ordered list of row generation steps.
+//
+//  Pattern:
+//    <GeneratorStep> (<EOL>? <GeneratorStep>)*
 type GeneratorTableRow struct {
 	Steps []*GeneratorStep `parser:"@@ (EOL? @@)*"`
 }
 
+// GeneratorStep is an AST node that denotes a list of generation targets.
+//
+//  Pattern:
+//    [ <Label> (, <EOL>? <Label>)* ]
 type GeneratorStep struct {
 	Values []string `parser:"GenStart @String (ListDelimiter EOL? @String)* GenEnd"`
 }
 
+// StrVal returns the actual string to be generated at the given index. Convenience method.
 func (s *GeneratorStep) StrVal(index int) string {
 	v := s.Values[index]
 	return v[1 : len(v)-1]
 }
 
+// TableRow is an AST node that denotes a single table row.
+//
+// Each row can be the default row for label and index lookups.
+// It can also have optional weighted lookup values, counts for deck draws
+// and be indepentently assigned ranges for index lookups and a label.
+//
+// A row needs at least one value, but all values will be concatenated as strings.
+//
+//  Pattern:
+//    Default? (w=<Number>)? (c=<number>)? <RangeList>? <Label>? :? <RowItem>+
 type TableRow struct {
 	Pos     lexer.Position
 	Default bool         `parser:"(@Default?"`
@@ -96,12 +167,19 @@ type TableRow struct {
 	Values  []*RowItem   `parser:"@@+"`
 }
 
+// RowItem is an AST node that denotes a single value to be concatenated in a row.
+//
+// The line extension `->` can be used to shorten longer lines for readability.
+//
+//  Pattern:
+//    (<Label> | <Expression>) (-> <EOL>)?
 type RowItem struct {
 	Pos        lexer.Position
 	StringVal  *string     `parser:"(@String"`
 	Expression *Expression `parser:"| @@)(ExtendLine EOL)?"`
 }
 
+// String returns the wrapped passed string. Convenience method.
 func (r *RowItem) String() string {
 	if r.StringVal == nil {
 		return ""
@@ -110,12 +188,20 @@ func (r *RowItem) String() string {
 	return (*r.StringVal)[1 : l-1]
 }
 
+// LabelString is an AST node that can be either a string or a name.
+//
+// Except for in table rows, if your text follows the TableName format
+// you can omit double quotes for simplicity and clarity.
+//
+//  Pattern:
+//    <TableName> | "<string>"
 type LabelString struct {
 	Pos     lexer.Position
 	Single  *string `parser:"@TableName"`
 	Escaped *string `parser:"| @String"`
 }
 
+// String returns the string or label value. Convenience method.
 func (l *LabelString) String() string {
 	if l.Single == nil {
 		sLen := len(*l.Escaped)
@@ -124,6 +210,7 @@ func (l *LabelString) String() string {
 	return *l.Single
 }
 
+// IsLabel returns whether this value can be processed as a label.
 func (l *LabelString) IsLabel() bool {
 	return l.Single == nil
 }
@@ -214,28 +301,28 @@ type ValueExpr struct {
 type ValueExprType int
 
 func (v *ValueExpr) GetType() ValueExprType {
-	if v.exprType != NONE_EXPR_T {
+	if v.exprType != NoneExprT {
 		return v.exprType
 	} else if v.Roll != nil {
-		v.exprType = ROLL_EXPR_T
+		v.exprType = RollExprT
 	} else if v.Num != nil {
-		v.exprType = NUM_EXPR_T
+		v.exprType = NumExprT
 	} else if v.Label != nil {
-		v.exprType = LABEL_EXPR_T
+		v.exprType = LabelExprT
 	} else if v.Call != nil {
 		if v.Call.IsTable {
-			v.exprType = TABLE_EXPR_T
+			v.exprType = TableExprT
 		} else {
-			v.exprType = FUNC_EXPR_T
+			v.exprType = FuncExprT
 		}
 	} else if v.Variable != nil {
-		v.exprType = VAR_EXPR_T
+		v.exprType = VarExprT
 	}
 	return v.exprType
 }
 
 func (v *ValueExpr) GetStringType() string {
-	return STR_EXPR_TYPE[v.GetType()]
+	return ExprTypeStr[v.GetType()]
 }
 
 type VarName struct {
@@ -258,10 +345,10 @@ func (n *ExtendedTableName) FullName() string {
 }
 
 const (
-	NATURAL_NUMBER = `([1-9][0-9]*)`
-	WHOLE_NUMBER   = `(0|([1-9][0-9]*))`
-	INTEGER        = `(0|(-?[1-9][0-9]*))`
-	IDENTIFIER     = `[a-zA-Z][a-zA-Z0-9\-_]*`
+	naturalNumberPat = `([1-9][0-9]*)`
+	wholeNumberPat   = `(0|([1-9][0-9]*))`
+	integerPat       = `(0|(-?[1-9][0-9]*))`
+	identifierPat    = `[a-zA-Z][a-zA-Z0-9\-_]*`
 )
 
 var (
@@ -286,8 +373,8 @@ var (
 			{Name: "GenEnd", Pattern: `]`},
 		},
 		"Atomic": []lexer.Rule{
-			{Name: "TableName", Pattern: IDENTIFIER},
-			{Name: "Roll", Pattern: NATURAL_NUMBER + `d` + NATURAL_NUMBER, Action: lexer.Push("Roll")},
+			{Name: "TableName", Pattern: identifierPat},
+			{Name: "Roll", Pattern: naturalNumberPat + `d` + naturalNumberPat, Action: lexer.Push("Roll")},
 			{Name: "CallStart", Pattern: `\(`, Action: lexer.Push("Call")},
 			{Name: "ExprStart", Pattern: `{`, Action: lexer.Push("Expr")},
 			{Name: "String", Pattern: `"(\\"|[^"])*"`},
@@ -327,10 +414,10 @@ var (
 			{Name: "Whitespace", Pattern: `[ \t]+`},
 		},
 		"ExprValues": []lexer.Rule{
-			{Name: "Integer", Pattern: INTEGER},
+			{Name: "Integer", Pattern: integerPat},
 		},
 		"NumberRule": []lexer.Rule{
-			{Name: "Number", Pattern: NATURAL_NUMBER},
+			{Name: "Number", Pattern: naturalNumberPat},
 		},
 	})
 )

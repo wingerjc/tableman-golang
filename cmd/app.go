@@ -10,6 +10,8 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
+// App is a standalone command line app that processes an inpute string
+// and places results on the output stream.
 type App struct {
 	out         *bufio.Writer
 	cmd         *bufio.Scanner
@@ -20,6 +22,7 @@ type App struct {
 	CLIPrefix   string
 }
 
+// NewApp ceates a new CLI app from the given configuration.
 func NewApp(opt *programOptions) (*App, error) {
 	app := &App{}
 	app.cmd = bufio.NewScanner(os.Stdin)
@@ -55,7 +58,8 @@ func NewApp(opt *programOptions) (*App, error) {
 	return app, nil
 }
 
-func (app *App) cliLoop() error {
+// CLILoop executes the app in a loop until the input stream is processed/closed.
+func (app *App) CLILoop() error {
 	if app.interactive {
 		app.PF("%s ", app.CLIPrefix)
 	}
@@ -141,15 +145,20 @@ func (app *App) executeStatement(code string) error {
 	return nil
 }
 
+// P prints to the app's output stream without flushing.
+// Uses `fprintf` formatting.
 func (app *App) P(format string, vals ...interface{}) error {
 	_, err := fmt.Fprintf(app.out, format, vals...)
 	return err
 }
 
+// Flush flushes the app's output stream.
 func (app *App) Flush() error {
 	return app.out.Flush()
 }
 
+// PF prints and flushes to the app's output stream.
+// Uses `fprintf` formatting.
 func (app *App) PF(format string, vals ...interface{}) error {
 	if err := app.P(format, vals...); err != nil {
 		return err

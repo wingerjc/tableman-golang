@@ -27,21 +27,21 @@ func CompileExpression(node *parser.Expression, packKeys nameMap) (program.Evall
 
 func CompileValueExpr(node *parser.ValueExpr, packKeys nameMap) (program.Evallable, error) {
 	switch node.GetType() {
-	case parser.FUNC_EXPR_T:
+	case parser.FuncExprT:
 		params, err := getParams(node, packKeys)
 		if err != nil {
 			return nil, err
 		}
 		return program.NewFunction(node.Call.Name.Names[0], params)
-	case parser.NUM_EXPR_T:
+	case parser.NumExprT:
 		return program.NewNumber(*node.Num), nil
-	case parser.LABEL_EXPR_T:
+	case parser.LabelExprT:
 		return program.NewString(node.Label.String(), node.Label.IsLabel()), nil
-	case parser.VAR_EXPR_T:
+	case parser.VarExprT:
 		return program.NewVariable(node.Variable.Name), nil
-	case parser.TABLE_EXPR_T:
+	case parser.TableExprT:
 		return compileTableCall(node, packKeys)
-	case parser.ROLL_EXPR_T:
+	case parser.RollExprT:
 		return compileRollExpr(node.Roll)
 	}
 	return nil, fmt.Errorf("unkown expression type %s", node.GetStringType())

@@ -93,9 +93,9 @@ func TestTableCallCompile(t *testing.T) {
 	pack := program.NewTablePack("bar", "foo", tableMap)
 	packMap := make(program.TableMap)
 	packMap["bar"] = pack
-	eCtx := program.NewRootExecutionContext()
+	eCtx := program.NewRootExecutionContext().
+		SetRandom(&program.DefaultRandSource{})
 	eCtx.SetPacks(packMap)
-	eCtx.SetRandom(&program.DefaultRandSource{})
 
 	ctx := &tableCallTestContext{
 		packKeys: packKeys,

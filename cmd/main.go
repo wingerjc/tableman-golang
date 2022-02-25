@@ -10,7 +10,7 @@ func main() {
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 	}
-	err = app.cliLoop()
+	err = app.CLILoop()
 	app.out.Flush()
 	if err != nil {
 		os.Stderr.WriteString(err.Error())

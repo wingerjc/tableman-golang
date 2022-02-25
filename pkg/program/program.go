@@ -164,8 +164,9 @@ func NewRootExecutionContext() *ExecutionContext {
 	}
 }
 
-func (ctx *ExecutionContext) SetRandom(r RandomSource) {
+func (ctx *ExecutionContext) SetRandom(r RandomSource) *ExecutionContext {
 	ctx.rand = r
+	return ctx
 }
 
 func (ctx *ExecutionContext) Rand(low int, high int) int {
