@@ -13,12 +13,12 @@ var (
 )
 
 func assertInt(expect int, r *program.ExpressionResult, assert *assert.Assertions) {
-	assert.True(r.MatchType(program.INT_RESULT))
+	assert.True(r.MatchType(program.IntResult))
 	assert.Equal(expect, r.IntVal())
 }
 
 func assertString(expect string, r *program.ExpressionResult, assert *assert.Assertions) {
-	assert.True(r.MatchType(program.STRING_RESULT))
+	assert.True(r.MatchType(program.StringResult))
 	assert.Equal(expect, r.StringVal())
 }
 

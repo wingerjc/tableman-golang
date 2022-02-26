@@ -54,7 +54,7 @@ func assertTableCallStr(code string, expect string, ctx *tableCallTestContext) {
 	ctx.assert.NoError(err)
 	val, err := program.EvaluateExpression(expr, ctx.eCtx.Child())
 	ctx.assert.NoError(err)
-	ctx.assert.True(val.MatchType(program.STRING_RESULT))
+	ctx.assert.True(val.MatchType(program.StringResult))
 	ctx.assert.Equal(expect, val.StringVal())
 }
 

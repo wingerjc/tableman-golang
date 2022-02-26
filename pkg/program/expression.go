@@ -1,11 +1,13 @@
 package program
 
+// An Expression is an Evallable with for an expression.
 type Expression struct {
 	varOrder []string
 	vars     map[string]Evallable
 	expr     Evallable
 }
 
+// NewExpression creates a new expression Evallable.
 func NewExpression(varOrder []string, vars map[string]Evallable, expr Evallable) Evallable {
 	return &Expression{
 		varOrder: varOrder,
@@ -14,6 +16,7 @@ func NewExpression(varOrder []string, vars map[string]Evallable, expr Evallable)
 	}
 }
 
+// Eval implementation for Evallable interface.
 func (e *Expression) Eval() ExpressionEval {
 	return &runtimeExpression{
 		expr:  e,

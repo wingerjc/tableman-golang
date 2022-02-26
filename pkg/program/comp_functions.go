@@ -17,10 +17,10 @@ func gtResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 		return nil, fmt.Errorf("types do not match for function: %s", "gt")
 	}
 	val := 0
-	if a.MatchType(INT_RESULT) && a.IntVal() > b.IntVal() {
+	if a.MatchType(IntResult) && a.IntVal() > b.IntVal() {
 		val = 1
 	}
-	if a.MatchType(STRING_RESULT) && a.StringVal() > b.StringVal() {
+	if a.MatchType(StringResult) && a.StringVal() > b.StringVal() {
 		val = 1
 	}
 	return NewIntResult(val), nil
@@ -33,10 +33,10 @@ func gteResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 		return nil, fmt.Errorf("types do not match for function: %s", "te")
 	}
 	val := 0
-	if a.MatchType(INT_RESULT) && a.IntVal() >= b.IntVal() {
+	if a.MatchType(IntResult) && a.IntVal() >= b.IntVal() {
 		val = 1
 	}
-	if a.MatchType(STRING_RESULT) && a.StringVal() >= b.StringVal() {
+	if a.MatchType(StringResult) && a.StringVal() >= b.StringVal() {
 		val = 1
 	}
 	return NewIntResult(val), nil
@@ -49,10 +49,10 @@ func ltResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 		return nil, fmt.Errorf("types do not match for function: %s", "lt")
 	}
 	val := 0
-	if a.MatchType(INT_RESULT) && a.IntVal() < b.IntVal() {
+	if a.MatchType(IntResult) && a.IntVal() < b.IntVal() {
 		val = 1
 	}
-	if a.MatchType(STRING_RESULT) && a.StringVal() < b.StringVal() {
+	if a.MatchType(StringResult) && a.StringVal() < b.StringVal() {
 		val = 1
 	}
 	return NewIntResult(val), nil
@@ -65,10 +65,10 @@ func lteResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 		return nil, fmt.Errorf("types do not match for function: %s", "lte")
 	}
 	val := 0
-	if a.MatchType(INT_RESULT) && a.IntVal() <= b.IntVal() {
+	if a.MatchType(IntResult) && a.IntVal() <= b.IntVal() {
 		val = 1
 	}
-	if a.MatchType(STRING_RESULT) && a.StringVal() <= b.StringVal() {
+	if a.MatchType(StringResult) && a.StringVal() <= b.StringVal() {
 		val = 1
 	}
 	return NewIntResult(val), nil

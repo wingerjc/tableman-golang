@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// TableCall is an Evallable for calls to a table.
 type TableCall struct {
 	packageKey  string
 	packageName string
@@ -11,6 +12,7 @@ type TableCall struct {
 	params      []Evallable
 }
 
+// NewTableCall creates a new table call Evallable.
 func NewTableCall(
 	packageKey string,
 	packageName string,
@@ -18,7 +20,7 @@ func NewTableCall(
 	params []Evallable,
 ) (Evallable, error) {
 	if len(packageKey) == 0 {
-		packageKey = ROOT_PACK
+		packageKey = RootPack
 	}
 	if len(params) > 2 {
 		return nil, fmt.Errorf("table call cannot have more than 2 parameters")
@@ -31,6 +33,7 @@ func NewTableCall(
 	}, nil
 }
 
+// Eval implementation for Evallable interface.
 func (c *TableCall) Eval() ExpressionEval {
 	return &tableCallEval{
 		def:        c,
@@ -77,7 +80,7 @@ func (t *tableCallEval) callTable() (ExpressionEval, error) {
 	if t.paramCount == 0 {
 		return table.Roll().Eval().SetContext(t.ctx.Child()), nil
 	}
-	if !t.results[0].MatchType(STRING_RESULT) {
+	if !t.results[0].MatchType(StringResult) {
 		return nil, fmt.Errorf("roll type must be a string value one of: roll/weighted/index/label/deck")
 	}
 	switch t.results[0].StringVal() {
@@ -89,7 +92,7 @@ func (t *tableCallEval) callTable() (ExpressionEval, error) {
 		if t.paramCount != 2 {
 			return nil, fmt.Errorf("index rolls require 2 parameters: '!t(index, <number>)'")
 		}
-		if !t.results[1].MatchType(INT_RESULT) {
+		if !t.results[1].MatchType(IntResult) {
 			return nil, fmt.Errorf("index rolls must have a number for the second parameter")
 		}
 		row, err := table.IndexRoll(t.results[1].IntVal())
@@ -101,7 +104,7 @@ func (t *tableCallEval) callTable() (ExpressionEval, error) {
 		if t.paramCount != 2 {
 			return nil, fmt.Errorf("label rolls require 2 parameters: '!t(label, <string>)")
 		}
-		if !t.results[1].MatchType(STRING_RESULT) {
+		if !t.results[1].MatchType(StringResult) {
 			return nil, fmt.Errorf("label rolls must have a string value for the second parameter")
 		}
 		row, err := table.LabelRoll(t.results[1].StringVal())
@@ -112,7 +115,7 @@ func (t *tableCallEval) callTable() (ExpressionEval, error) {
 	case "deck":
 		if t.paramCount == 2 {
 			shuf := t.results[1]
-			if !shuf.MatchType(STRING_RESULT) || (shuf.StringVal() != "shuffle" && shuf.strVal != "no-shuffle") {
+			if !shuf.MatchType(StringResult) || (shuf.StringVal() != "shuffle" && shuf.strVal != "no-shuffle") {
 				return nil, fmt.Errorf("if passing 2 parameters to a deck roll the 2nd parameter should be 'shuffle' or 'no-shuffle'")
 			}
 		}

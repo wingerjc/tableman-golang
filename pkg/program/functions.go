@@ -20,11 +20,11 @@ type GenericFunction struct {
 }
 
 func NewFunction(name string, params []Evallable) (Evallable, error) {
-	fn, ok := SPECIALIZED_FUNCTION_LIST[name]
+	fn, ok := specializedFunctionList[name]
 	if ok {
 		return fn(name, params)
 	}
-	config, ok := GENERIC_FUNCTION_LIST[name]
+	config, ok := genericFunctionList[name]
 	if !ok {
 		return nil, fmt.Errorf("could not find function '%s'", name)
 	}
@@ -128,14 +128,14 @@ func lowerResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 }
 
 func toStrResolve(results []*ExpressionResult) (*ExpressionResult, error) {
-	if results[0].MatchType(STRING_RESULT) {
+	if results[0].MatchType(StringResult) {
 		return results[0], nil
 	}
 	return NewStringResult(strconv.Itoa(results[0].IntVal())), nil
 }
 
 func toIntResolve(results []*ExpressionResult) (*ExpressionResult, error) {
-	if results[0].MatchType(INT_RESULT) {
+	if results[0].MatchType(IntResult) {
 		return results[0], nil
 	}
 	result, err := strconv.Atoi(results[0].StringVal())
@@ -143,11 +143,11 @@ func toIntResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 }
 
 func onlyIntVerify(t ResultType, index int) bool {
-	return t == INT_RESULT
+	return t == IntResult
 }
 
 func onlyStringVerify(t ResultType, index int) bool {
-	return t == STRING_RESULT
+	return t == StringResult
 }
 
 func anyVerify(t ResultType, index int) bool {
@@ -205,7 +205,7 @@ func (i *ifFunctionEval) Next() (ExpressionEval, error) {
 
 func (i *ifFunctionEval) Provide(res *ExpressionResult) error {
 	if i.conditionResult == nil {
-		if !res.MatchType(INT_RESULT) {
+		if !res.MatchType(IntResult) {
 			return fmt.Errorf("'if' condition must be an integer expression")
 		}
 		i.conditionResult = res

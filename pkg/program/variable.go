@@ -2,16 +2,19 @@ package program
 
 import "fmt"
 
+// Variable is an evallable for a variable access.
 type Variable struct {
 	name string
 }
 
+// NewVariable creates a new variable access Evallable.
 func NewVariable(name string) Evallable {
 	return &Variable{
 		name: name,
 	}
 }
 
+// Eval implementation for Evallable interface.
 func (v *Variable) Eval() ExpressionEval {
 	return &variableEval{
 		name: v.name,

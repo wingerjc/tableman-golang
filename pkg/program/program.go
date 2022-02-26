@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	ROOT_PACK = "_ROOT"
+	RootPack = "_ROOT"
 )
 
 type Evallable interface {
@@ -68,17 +68,17 @@ func (e *ExpressionResult) Equal(other *ExpressionResult) bool {
 	if e.resultType != other.resultType {
 		return false
 	}
-	if e.resultType == INT_RESULT {
+	if e.resultType == IntResult {
 		return e.intVal == other.intVal
 	}
-	if e.resultType == STRING_RESULT {
+	if e.resultType == StringResult {
 		return e.strVal == other.strVal
 	}
 	return false
 }
 
 func (e *ExpressionResult) BoolVal() bool {
-	return e.resultType == INT_RESULT && e.intVal != 0
+	return e.resultType == IntResult && e.intVal != 0
 }
 
 func (e *ExpressionResult) SameType(other *ExpressionResult) bool {
@@ -87,14 +87,14 @@ func (e *ExpressionResult) SameType(other *ExpressionResult) bool {
 
 func NewStringResult(val string) *ExpressionResult {
 	return &ExpressionResult{
-		resultType: STRING_RESULT,
+		resultType: StringResult,
 		strVal:     val,
 	}
 }
 
 func NewIntResult(val int) *ExpressionResult {
 	return &ExpressionResult{
-		resultType: INT_RESULT,
+		resultType: IntResult,
 		intVal:     val,
 	}
 }
@@ -117,9 +117,9 @@ func (e *ExpressionResult) StringVal() string {
 }
 
 const (
-	ANY_TYPE      = 0
-	STRING_RESULT = 1
-	INT_RESULT    = 2
+	AnyTypeResult = 0
+	StringResult  = 1
+	IntResult     = 2
 )
 
 type RollHistory struct {

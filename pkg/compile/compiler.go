@@ -115,7 +115,7 @@ func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 		// keep specialtrack of the root pack for execution.
 		if first {
 			first = false
-			tableDefs[program.ROOT_PACK] = pack
+			tableDefs[program.RootPack] = pack
 		}
 	}
 	rand.Seed(time.Now().Unix())
@@ -129,7 +129,7 @@ func (c *Compiler) CompileExpression(code string) (program.Evallable, error) {
 		return nil, err
 	}
 	keys := make(nameMap)
-	keys[""] = program.ROOT_PACK
+	keys[""] = program.RootPack
 	return compileExpression(parsed, keys)
 }
 

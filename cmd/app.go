@@ -137,7 +137,7 @@ func (app *App) executeStatement(code string) error {
 	if err != nil {
 		return err
 	}
-	if result.MatchType(program.STRING_RESULT) {
+	if result.MatchType(program.StringResult) {
 		app.P("%s\n", result.StringVal())
 	} else {
 		app.P("%d\n", result.IntVal())
