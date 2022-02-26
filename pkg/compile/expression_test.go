@@ -50,7 +50,7 @@ type tableCallTestContext struct {
 func assertTableCallStr(code string, expect string, ctx *tableCallTestContext) {
 	ast, err := ctx.eParser.Parse(code)
 	ctx.assert.NoError(err)
-	expr, err := CompileExpression(ast, ctx.packKeys)
+	expr, err := compileExpression(ast, ctx.packKeys)
 	ctx.assert.NoError(err)
 	val, err := program.EvaluateExpression(expr, ctx.eCtx.Child())
 	ctx.assert.NoError(err)
@@ -61,7 +61,7 @@ func assertTableCallStr(code string, expect string, ctx *tableCallTestContext) {
 func assertTableCallRuntimeErr(code string, ctx *tableCallTestContext) {
 	ast, err := ctx.eParser.Parse(code)
 	ctx.assert.NoError(err)
-	expr, err := CompileExpression(ast, ctx.packKeys)
+	expr, err := compileExpression(ast, ctx.packKeys)
 	ctx.assert.NoError(err)
 	_, err = program.EvaluateExpression(expr, ctx.eCtx.Child())
 	ctx.assert.Error(err)
@@ -70,7 +70,7 @@ func assertTableCallRuntimeErr(code string, ctx *tableCallTestContext) {
 func assertTableCallCompileErr(code string, ctx *tableCallTestContext) {
 	ast, err := ctx.eParser.Parse(code)
 	ctx.assert.NoError(err)
-	_, err = CompileExpression(ast, ctx.packKeys)
+	_, err = compileExpression(ast, ctx.packKeys)
 	ctx.assert.Error(err)
 }
 
@@ -85,7 +85,7 @@ func TestTableCallCompile(t *testing.T) {
 	c=2 15 first: "red"`
 	tParsed, err := tParser.Parse(tCode)
 	assert.NoError(err)
-	table, err := CompileTable(tParsed, packKeys)
+	table, err := compileTable(tParsed, packKeys)
 	assert.NoError(err)
 
 	tableMap := make(map[string]*program.Table)

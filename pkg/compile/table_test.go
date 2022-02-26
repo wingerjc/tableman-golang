@@ -11,7 +11,7 @@ import (
 func parseRow(expr string, p *parser.RowParser, assert *assert.Assertions) *program.TableRow {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	row, err := CompileRow(parsed, DEFAULT_NAME_MAP)
+	row, err := compileRow(parsed, defaultNameMap)
 	assert.NoError(err)
 	return row
 }
@@ -19,7 +19,7 @@ func parseRow(expr string, p *parser.RowParser, assert *assert.Assertions) *prog
 func parseTable(expr string, p *parser.TableParser, assert *assert.Assertions) *program.Table {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	table, err := CompileTable(parsed, DEFAULT_NAME_MAP)
+	table, err := compileTable(parsed, defaultNameMap)
 	assert.NoError(err)
 	return table
 }

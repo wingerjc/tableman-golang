@@ -12,11 +12,13 @@ import (
 	"github.com/wingerjc/tableman-golang/pkg/program"
 )
 
+// A Compiler that can parse files, string table files, or expressions to executable programs.
 type Compiler struct {
 	parser     *parser.TableFileParser
 	exprParser *parser.ExpressionParser
 }
 
+// NewCompiler creates a new compiler for use.
 func NewCompiler() (*Compiler, error) {
 	p, err := parser.GetParser()
 	if err != nil {
@@ -32,6 +34,7 @@ func NewCompiler() (*Compiler, error) {
 	}, nil
 }
 
+// CompileFile compiles the file with the passed path.
 func (c *Compiler) CompileFile(fileName string) (*program.Program, error) {
 	code, err := c.loadFile(fileName)
 	if err != nil {
@@ -40,6 +43,7 @@ func (c *Compiler) CompileFile(fileName string) (*program.Program, error) {
 	return c.compile(code)
 }
 
+// CompileString compiles the string as if it were a table file.
 func (c *Compiler) CompileString(code string) (*program.Program, error) {
 	parsed, err := c.parser.Parse(code)
 	if err != nil {
@@ -103,7 +107,7 @@ func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 		}
 
 		// compile file
-		pack, err := CompileTableFile(t.parsed, t.key, keys)
+		pack, err := compileTableFile(t.parsed, t.key, keys)
 		if err != nil {
 			return nil, err
 		}
@@ -118,6 +122,7 @@ func (c *Compiler) compile(pack *readTable) (*program.Program, error) {
 	return program.NewProgram(tableDefs), nil
 }
 
+// CompileExpression compiles an expression so it can be executed by a program.
 func (c *Compiler) CompileExpression(code string) (program.Evallable, error) {
 	parsed, err := c.exprParser.Parse(code)
 	if err != nil {
@@ -125,27 +130,19 @@ func (c *Compiler) CompileExpression(code string) (program.Evallable, error) {
 	}
 	keys := make(nameMap)
 	keys[""] = program.ROOT_PACK
-	return CompileExpression(parsed, keys)
+	return compileExpression(parsed, keys)
 }
 
-func CompileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {
+func compileTableFile(parsed *parser.TableFile, key string, tableKeys nameMap) (*program.TablePack, error) {
 	tables := make(map[string]*program.Table)
 	for _, t := range parsed.Tables {
-		compiledTable, err := CompileTable(t, tableKeys)
+		compiledTable, err := compileTable(t, tableKeys)
 		if err != nil {
 			return nil, err
 		}
 		tables[compiledTable.Name()] = compiledTable
 	}
 	return program.NewTablePack(key, parsed.Header.Name.FullName(), tables), nil
-}
-
-func (c *Compiler) parseString(code string) (*parser.TableFile, error) {
-	result, err := c.parser.Parse(code)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
 }
 
 func (c *Compiler) loadFile(fname string) (*readTable, error) {

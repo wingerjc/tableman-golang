@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	DEFAULT_NAME_MAP = make(nameMap)
+	defaultNameMap = make(nameMap)
 )
 
 func assertInt(expect int, r *program.ExpressionResult, assert *assert.Assertions) {
@@ -25,14 +25,14 @@ func assertString(expect string, r *program.ExpressionResult, assert *assert.Ass
 func assertCompFail(expr string, p *parser.ExpressionParser, assert *assert.Assertions) {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	_, err = CompileExpression(parsed, DEFAULT_NAME_MAP)
+	_, err = compileExpression(parsed, defaultNameMap)
 	assert.Error(err)
 }
 
 func assertRuntimeFail(expr string, p *parser.ExpressionParser, assert *assert.Assertions) {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
+	prog, err := compileExpression(parsed, defaultNameMap)
 	assert.NoError(err)
 	_, err = program.EvaluateExpression(prog, nil)
 	assert.Error(err)
@@ -50,7 +50,7 @@ func shouldParseExprWithContext(
 ) *program.ExpressionResult {
 	parsed, err := p.Parse(expr)
 	assert.NoError(err)
-	prog, err := CompileExpression(parsed, DEFAULT_NAME_MAP)
+	prog, err := compileExpression(parsed, defaultNameMap)
 	assert.NoError(err)
 	res, err := program.EvaluateExpression(prog, ctx)
 	assert.NoError(err)
