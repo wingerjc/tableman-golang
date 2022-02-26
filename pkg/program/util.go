@@ -8,7 +8,7 @@ type RandomSource interface {
 	Get(low int, high int) int
 }
 
-// DefaultRandomSource is a RandomSource that uses rand.Intn
+// DefaultRandSource is a RandomSource that uses rand.Intn
 type DefaultRandSource struct {
 }
 
