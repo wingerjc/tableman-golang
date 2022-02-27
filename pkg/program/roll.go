@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Roll is an Evallable roll expression value.
 type Roll struct {
 	print      bool
 	diceCount  int
@@ -15,6 +16,7 @@ type Roll struct {
 	countAggrs []*RollCountAggr
 }
 
+// NewRoll creates a new roll value.
 func NewRoll(count int, sides int) *Roll {
 	return &Roll{
 		diceCount:  count,
@@ -26,41 +28,45 @@ func NewRoll(count int, sides int) *Roll {
 	}
 }
 
-func (r *Roll) Set() Evallable {
-	return r
-}
-
+// WithAggr configures this roll with an aggregation function.
 func (r *Roll) WithAggr(aggrFn string) *Roll {
 	r.aggrFn = aggrFn
 	return r
 }
 
+// WithCountAggr configures this roll with a list of count aggrs.
+// Replaces any previous count aggregar setting.
 func (r *Roll) WithCountAggr(countAggrs []*RollCountAggr) *Roll {
 	r.countAggrs = countAggrs
 	return r
 }
 
+// WithSelector configures this roll with a high/low selector.
 func (r *Roll) WithSelector(selector *RollSelect) *Roll {
 	r.selector = selector
 	return r
 }
 
+// WithPrint configures this roll to print if set to true.
 func (r *Roll) WithPrint(print bool) *Roll {
 	r.print = print
 	return r
 }
 
+// Eval implementation for Evallable interface.
 func (r *Roll) Eval() ExpressionEval {
 	return &rollEval{
 		def: r,
 	}
 }
 
+// RollSelect is a roll selector for the highest or lowest N dice.
 type RollSelect struct {
 	high  bool
 	count int
 }
 
+// NewRollSelect creates a new high/low roll selector.
 func NewRollSelect(isHigh bool, count int) *RollSelect {
 	return &RollSelect{
 		high:  isHigh,
@@ -68,11 +74,14 @@ func NewRollSelect(isHigh bool, count int) *RollSelect {
 	}
 }
 
+// RollCountAggr is an aggregator for counting how many of a
+// given number is rolled.
 type RollCountAggr struct {
 	number     int
 	multiplier int
 }
 
+// NewRollCountAggr creates a new roll count aggregator.
 func NewRollCountAggr(number int, multiplier int) *RollCountAggr {
 	return &RollCountAggr{
 		number:     number,

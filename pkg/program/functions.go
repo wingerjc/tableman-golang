@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// FunctionDef is a way to define a function so it can be used
+// in a modular way.
 type FunctionDef struct {
 	funcName    string
 	minParams   int
@@ -14,11 +16,15 @@ type FunctionDef struct {
 	verifyParam func(ResultType, int) bool
 }
 
+// GenericFunction allows a simple FunctionDef to be wrapped for simpler definitions.
+// An Evallable.
 type GenericFunction struct {
 	params []Evallable
 	config *FunctionDef
 }
 
+// NewFunction creates a function Evallable, erroring if it can on the
+// format of the parameters.
 func NewFunction(name string, params []Evallable) (Evallable, error) {
 	fn, ok := specializedFunctionList[name]
 	if ok {
@@ -47,30 +53,31 @@ func NewFunction(name string, params []Evallable) (Evallable, error) {
 	}, nil
 }
 
+// Eval implementation for Evallable interface.
 func (g *GenericFunction) Eval() ExpressionEval {
-	return &EvalGenericFunc{
+	return &evalGenericFunc{
 		funcDef: g,
 		vals:    make([]*ExpressionResult, len(g.params)),
 		index:   0,
 	}
 }
 
-type EvalGenericFunc struct {
+type evalGenericFunc struct {
 	ctx     *ExecutionContext
 	funcDef *GenericFunction
 	vals    []*ExpressionResult
 	index   int
 }
 
-func (g *EvalGenericFunc) SetContext(ctx *ExecutionContext) ExpressionEval {
+func (g *evalGenericFunc) SetContext(ctx *ExecutionContext) ExpressionEval {
 	g.ctx = ctx
 	return g
 }
-func (g *EvalGenericFunc) HasNext() bool {
+func (g *evalGenericFunc) HasNext() bool {
 	return g.index < len(g.vals)
 }
 
-func (g *EvalGenericFunc) Next() (ExpressionEval, error) {
+func (g *evalGenericFunc) Next() (ExpressionEval, error) {
 	if g.index > len(g.funcDef.params) {
 		return nil, fmt.Errorf("accessing too many sub-expressions for function call")
 	}
@@ -78,7 +85,7 @@ func (g *EvalGenericFunc) Next() (ExpressionEval, error) {
 	return res.Eval().SetContext(g.ctx.Child()), nil
 }
 
-func (g *EvalGenericFunc) Provide(res *ExpressionResult) error {
+func (g *evalGenericFunc) Provide(res *ExpressionResult) error {
 	if !g.funcDef.config.verifyParam(res.resultType, g.index) {
 		return fmt.Errorf("could not execute %s, wrong type for parameter %d in function '%s'",
 			g.funcDef.config.funcName,
@@ -91,7 +98,7 @@ func (g *EvalGenericFunc) Provide(res *ExpressionResult) error {
 	return nil
 }
 
-func (g *EvalGenericFunc) Resolve() (*ExpressionResult, error) {
+func (g *evalGenericFunc) Resolve() (*ExpressionResult, error) {
 	return g.funcDef.config.resolve(g.vals)
 }
 

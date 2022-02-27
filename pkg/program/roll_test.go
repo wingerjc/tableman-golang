@@ -13,7 +13,7 @@ func TestBasicRoll(t *testing.T) {
 		SetRandom(random)
 
 	random.AddMore(3, 4)
-	r, err := NewRoll(2, 5).Set().Eval().SetContext(ctx).Resolve()
+	r, err := NewRoll(2, 5).Eval().SetContext(ctx).Resolve()
 	assert.NoError(err)
 	assert.True(r.MatchType(IntResult))
 	assert.Equal(7, r.IntVal())
@@ -22,7 +22,7 @@ func TestBasicRoll(t *testing.T) {
 	r, err = NewRoll(6, 10).
 		WithAggr("mode").
 		WithPrint(true).
-		WithSelector(NewRollSelect(true, 4)).Set().Eval().SetContext(ctx).Resolve()
+		WithSelector(NewRollSelect(true, 4)).Eval().SetContext(ctx).Resolve()
 	assert.NoError(err)
 	assert.True(r.MatchType(StringResult))
 	assert.Equal("5: 6d10 mode(3, 5, 5, 6) drop(1, 2)", r.StringVal())

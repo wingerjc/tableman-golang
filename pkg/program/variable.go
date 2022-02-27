@@ -44,9 +44,9 @@ func (v *variableEval) Provide(res *ExpressionResult) error {
 }
 
 func (v *variableEval) Resolve() (*ExpressionResult, error) {
-	res := v.ctx.Resolve(v.name)
-	if res == nil {
-		return nil, fmt.Errorf("variable not set: %s", v.name)
+	res, err := v.ctx.Resolve(v.name)
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil

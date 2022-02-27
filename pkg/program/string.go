@@ -2,11 +2,13 @@ package program
 
 import "fmt"
 
+// String is an Evallable for a string value.
 type String struct {
 	value   string
 	isLabel bool
 }
 
+// NewString creates a new string evallable.
 func NewString(value string, isLabel bool) Evallable {
 	return &String{
 		value:   value,
@@ -14,10 +16,12 @@ func NewString(value string, isLabel bool) Evallable {
 	}
 }
 
+// IsLabel returns whether the string was considered a label at parse time.
 func (s *String) IsLabel() bool {
 	return s.isLabel
 }
 
+// Eval implementation for the Evallable inerface.
 func (s *String) Eval() ExpressionEval {
 	return &stringEval{
 		value: s.value,

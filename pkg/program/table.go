@@ -7,6 +7,8 @@ import (
 	"github.com/k0kubun/pp"
 )
 
+// Table is a program unit that can randomly and deterministically return
+// row Evallable objects. The core of tableman.
 type Table struct {
 	name         string
 	tags         map[string]string
@@ -19,6 +21,7 @@ type Table struct {
 	defaultRow   int
 }
 
+// NewTable creates a new table object.
 func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 	result := &Table{
 		name:         name,
@@ -42,13 +45,14 @@ func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 			result.defaultRow = i
 		}
 		for _, rng := range r.Ranges() {
-			rng.SetRow(r)
+			rng.setRow(r)
 			result.rowsByRange = append(result.rowsByRange, rng)
 		}
 	}
 	return result
 }
 
+// Roll randomly on the table treating each row with equal weight.
 func (t *Table) Roll() Evallable {
 	return &rowFuture{
 		fn: func(ctx *ExecutionContext) Evallable {
@@ -58,6 +62,8 @@ func (t *Table) Roll() Evallable {
 	}
 }
 
+// WeightedRoll randomly rolls on the table using the defined row weights to
+// decide which rows to return. Rows without set weights are treated as w=1.
 func (t *Table) WeightedRoll() Evallable {
 	return &rowFuture{
 		fn: func(ctx *ExecutionContext) Evallable {
@@ -76,6 +82,9 @@ func (t *Table) WeightedRoll() Evallable {
 	}
 }
 
+// LabelRoll fetches a row directly from the table using the passed label.
+// If no label was defined on the table, the default row will be returned.
+// If no default row was specified, an error will be returned.
 func (t *Table) LabelRoll(key string) (Evallable, error) {
 	r, ok := t.rowsByLabel[key]
 	if !ok {
@@ -87,6 +96,11 @@ func (t *Table) LabelRoll(key string) (Evallable, error) {
 	return r.Value(), nil
 }
 
+// DeckDraw will treat the table as a deck of cards using the count value (default 1) to
+// choose a row from the deck.
+//
+// This is the only stateful draw from the table, once all counts have been exhausted
+// an error will be returned if DeckDraw is called. Reset the counts by calling `Shuffle()`.
 func (t *Table) DeckDraw() (Evallable, error) {
 	if t.currentCount == 0 {
 		return nil, fmt.Errorf("deck draw called too many times without shuffle on table '%s'", t.name)
@@ -111,6 +125,7 @@ func (t *Table) DeckDraw() (Evallable, error) {
 	}, nil
 }
 
+// Shuffle resets all counts for DeckDraw calls.
 func (t *Table) Shuffle() {
 	for _, r := range t.rows {
 		r.currentCount = r.count
@@ -118,10 +133,13 @@ func (t *Table) Shuffle() {
 	t.currentCount = t.totalCount
 }
 
+// IndexRoll returns the row defined for the given index.
+// If no index machtes, the default row will be used.
+// If no default was defined, an error will be returned.
 func (t *Table) IndexRoll(key int) (Evallable, error) {
 	for _, rng := range t.rowsByRange {
-		if rng.InRange(key) {
-			return rng.Row().Value(), nil
+		if rng.inRange(key) {
+			return rng.getRow().Value(), nil
 		}
 	}
 	if t.defaultRow >= 0 {
@@ -130,27 +148,34 @@ func (t *Table) IndexRoll(key int) (Evallable, error) {
 	return nil, fmt.Errorf("in table '%s' no index %d and no default row set", t.name, key)
 }
 
+// Name returns the defined name of the table.
 func (t *Table) Name() string {
 	return t.name
 }
 
+// TotalCount returns the total number of "cards" for a DeckDraw.
 func (t *Table) TotalCount() int {
 	return t.totalCount
 }
 
+// TotalWeight returns the total weight of all tale rows.
 func (t *Table) TotalWeight() int {
 	return t.totalWeight
 }
 
+// RowCount returns the number of rows in the table.
 func (t *Table) RowCount() int {
 	return len(t.rows)
 }
 
+// Tag returns the tage valuve for the given tag name and a boolean for
+// whether the tag was defined (the same way a map can).
 func (t *Table) Tag(tagName string) (string, bool) {
 	v, ok := t.tags[tagName]
 	return v, ok
 }
 
+// Default returns the default row for the table or an error if ther isn't one.
 func (t *Table) Default() (Evallable, error) {
 	if t.defaultRow < 0 {
 		return nil, fmt.Errorf("no default set for table '%s'", t.name)
@@ -186,6 +211,7 @@ func (r *rowFuture) Resolve() (*ExpressionResult, error) {
 	return nil, fmt.Errorf("can't resolve table row future")
 }
 
+// TableRow is an Evallable row for ta table.
 type TableRow struct {
 	label        string
 	rangeVal     []*Range
@@ -196,6 +222,7 @@ type TableRow struct {
 	value        Evallable
 }
 
+// NewTableRow creates a new TableRow object.
 func NewTableRow(label string, rangeVal []*Range, weight int, count int, isDefault bool, value Evallable) *TableRow {
 	return &TableRow{
 		label:        label,
@@ -208,40 +235,49 @@ func NewTableRow(label string, rangeVal []*Range, weight int, count int, isDefau
 	}
 }
 
+// Default returns whether the row is a default value.
 func (r *TableRow) Default() bool {
 	return r.isDefault
 }
 
+// Label returns the label for the row, or an empty string if one isn't defined.
 func (r *TableRow) Label() string {
 	return r.label
 }
 
+// Count returns the current DeckDraw count for the row.
 func (r *TableRow) Count() int {
 	return r.count
 }
 
+// Weight returns the weight of the row.
 func (r *TableRow) Weight() int {
 	return r.weight
 }
 
+// Ranges returns the list of index ranges defined for this row.
 func (r *TableRow) Ranges() []*Range {
 	return r.rangeVal
 }
 
+// Value returns the Evalable avlue for this row.
 func (r *TableRow) Value() Evallable {
 	return r.value
 }
 
+// ListExpression is an Evallable that wraps all the items for a table row.
 type ListExpression struct {
 	items []Evallable
 }
 
+// NewListExpression creates a new list of epxressions for a row.
 func NewListExpression(items []Evallable) Evallable {
 	return &ListExpression{
 		items: items,
 	}
 }
 
+// Eval implementation for Evallable interface.
 func (l *ListExpression) Eval() ExpressionEval {
 	return &listExpressionEval{
 		config:  l,
@@ -293,12 +329,16 @@ func (l *listExpressionEval) Resolve() (*ExpressionResult, error) {
 	return NewStringResult(result), nil
 }
 
+// Range is a low-high number range.
+//
+// The range can be a single number if low and high are the same.
 type Range struct {
 	low  int
 	high int
 	row  *TableRow
 }
 
+// NewRange creates a new range value.
 func NewRange(low int, high int) *Range {
 	return &Range{
 		low:  low,
@@ -306,14 +346,14 @@ func NewRange(low int, high int) *Range {
 	}
 }
 
-func (r *Range) SetRow(row *TableRow) {
+func (r *Range) setRow(row *TableRow) {
 	r.row = row
 }
 
-func (r *Range) Row() *TableRow {
+func (r *Range) getRow() *TableRow {
 	return r.row
 }
 
-func (r *Range) InRange(val int) bool {
+func (r *Range) inRange(val int) bool {
 	return val <= r.high && val >= r.low
 }

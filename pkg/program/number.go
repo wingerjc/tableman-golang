@@ -2,16 +2,19 @@ package program
 
 import "fmt"
 
+// Number is an Evallable for a numeric constant.
 type Number struct {
 	value int
 }
 
+// NewNumber creates a new numeric Evallable.
 func NewNumber(value int) Evallable {
 	return &Number{
 		value: value,
 	}
 }
 
+// Eval implementation for Evallable interface.
 func (n *Number) Eval() ExpressionEval {
 	return newNumberEval(n.value)
 }
