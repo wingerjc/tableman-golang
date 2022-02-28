@@ -95,6 +95,15 @@ func (p *Program) Eval(expr Evallable) (*ExpressionResult, error) {
 	return EvaluateExpression(expr, p.ctx.Child())
 }
 
+// Copy returns a deep copy of the Program
+func (p *Program) Copy() *Program {
+	packs := make(TableMap)
+	for k, v := range p.packs {
+		packs[k] = v.Copy()
+	}
+	return NewProgram(packs)
+}
+
 // NewTablePack creates a new TablePack with the given tables.
 func NewTablePack(key string, name string, tables map[string]*Table) *TablePack {
 	return &TablePack{
@@ -109,6 +118,15 @@ type TablePack struct {
 	key    string
 	name   string
 	tables map[string]*Table
+}
+
+// Copy deep copies a TablePack
+func (t *TablePack) Copy() *TablePack {
+	tables := make(map[string]*Table)
+	for k, v := range t.tables {
+		tables[k] = v.Copy()
+	}
+	return NewTablePack(t.key, t.name, tables)
 }
 
 // ResultType is an alias for allowed return types from an expression.

@@ -21,6 +21,15 @@ type Table struct {
 	defaultRow   int
 }
 
+// Copy deep copies a Table
+func (t *Table) Copy() *Table {
+	newRows := make([]*TableRow, 0, len(t.rows))
+	for _, r := range t.rows {
+		newRows = append(newRows, r.Copy())
+	}
+	return NewTable(t.name, t.tags, newRows)
+}
+
 // NewTable creates a new table object.
 func NewTable(name string, tags map[string]string, rows []*TableRow) *Table {
 	result := &Table{
@@ -233,6 +242,18 @@ func NewTableRow(label string, rangeVal []*Range, weight int, count int, isDefau
 		isDefault:    isDefault,
 		value:        value,
 	}
+}
+
+// Copy deep copies a TableRow
+func (r *TableRow) Copy() *TableRow {
+	return NewTableRow(
+		r.label,
+		r.rangeVal,
+		r.weight,
+		r.count,
+		r.isDefault,
+		r.value,
+	)
 }
 
 // Default returns whether the row is a default value.
