@@ -216,7 +216,7 @@ func (e *ExpressionResult) StringVal() string {
 
 // RollHistory is a list of all roll results in string format.
 //
-// Not thread safe.
+// Mostly thread safe.
 type RollHistory struct {
 	rollResults []string
 	accessMu    sync.Mutex
