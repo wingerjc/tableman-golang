@@ -2,6 +2,7 @@ package program
 
 import (
 	"fmt"
+	"sync"
 )
 
 const (
@@ -218,25 +219,34 @@ func (e *ExpressionResult) StringVal() string {
 // Not thread safe.
 type RollHistory struct {
 	rollResults []string
+	accessMu    sync.Mutex
 }
 
 // ClearRolls clears the current roll history.
 func (h *RollHistory) ClearRolls() {
+	h.accessMu.Lock()
+	defer h.accessMu.Unlock()
 	h.rollResults = make([]string, 0)
 }
 
 // GetRollHistory returns a slice copy of the complete roll history.
 func (h *RollHistory) GetRollHistory() []string {
+	h.accessMu.Lock()
+	defer h.accessMu.Unlock()
 	return h.rollResults[:]
 }
 
 // AddRollToHistory adds the give roll string result to the history list.
 func (h *RollHistory) AddRollToHistory(roll string) {
+	h.accessMu.Lock()
+	defer h.accessMu.Unlock()
 	h.rollResults = append(h.rollResults, roll)
 }
 
 // LatestRoll returns the value of the last stored roll.
 func (h *RollHistory) LatestRoll() string {
+	h.accessMu.Lock()
+	defer h.accessMu.Unlock()
 	if len(h.rollResults) == 0 {
 		return ""
 	}

@@ -3,6 +3,7 @@ package program
 import (
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/k0kubun/pp"
 )
@@ -19,6 +20,7 @@ type Table struct {
 	totalCount   int
 	currentCount int
 	defaultRow   int
+	deckMu       sync.Mutex
 }
 
 // Copy deep copies a Table
@@ -111,6 +113,8 @@ func (t *Table) LabelRoll(key string) (Evallable, error) {
 // This is the only stateful draw from the table, once all counts have been exhausted
 // an error will be returned if DeckDraw is called. Reset the counts by calling `Shuffle()`.
 func (t *Table) DeckDraw() (Evallable, error) {
+	t.deckMu.Lock()
+	defer t.deckMu.Unlock()
 	if t.currentCount == 0 {
 		return nil, fmt.Errorf("deck draw called too many times without shuffle on table '%s'", t.name)
 	}
@@ -220,7 +224,7 @@ func (r *rowFuture) Resolve() (*ExpressionResult, error) {
 	return nil, fmt.Errorf("can't resolve table row future")
 }
 
-// TableRow is an Evallable row for ta table.
+// TableRow is an Evallable row for a tableman table.
 type TableRow struct {
 	label        string
 	rangeVal     []*Range

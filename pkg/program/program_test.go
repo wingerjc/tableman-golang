@@ -106,7 +106,7 @@ func TestCloneProgram(t *testing.T) {
 	assert.Equal("bar", res.StringVal())
 
 	// Copy should not have variable defined.
-	res, err = p3.Eval(expr)
+	_, err = p3.Eval(expr)
 	assert.Error(err)
 
 	// Verify that no edits get made back to the original

@@ -4,7 +4,9 @@ Table based text generation language interpreter.
 
 ## TODO
 
-- Thread safety (roll history)
+- Thread safety
+  - Roll history
+  - Deck pulls
 - Execution stack limit?
 - roll history max horizon.
 - Web server + api
