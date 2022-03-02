@@ -110,6 +110,14 @@ func addResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 	return NewIntResult(sum), nil
 }
 
+func multResolve(results []*ExpressionResult) (*ExpressionResult, error) {
+	product := 1
+	for _, x := range results {
+		product *= x.intVal
+	}
+	return NewIntResult(product), nil
+}
+
 func subResolve(results []*ExpressionResult) (*ExpressionResult, error) {
 	total := results[0].IntVal()
 	for _, r := range results[1:] {

@@ -16,6 +16,20 @@ var (
 			resolve:     addResolve,
 			verifyParam: onlyIntVerify,
 		},
+		"mult": {
+			funcName:    "mult",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     multResolve,
+			verifyParam: onlyIntVerify,
+		},
+		"product": {
+			funcName:    "product",
+			minParams:   1,
+			maxParams:   -1,
+			resolve:     multResolve,
+			verifyParam: onlyIntVerify,
+		},
 		"sub": {
 			funcName:    "sub",
 			minParams:   1,

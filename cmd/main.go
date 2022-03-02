@@ -10,6 +10,7 @@ func main() {
 	// Run as a web server
 	if opt.Web.RunWeb {
 		cfg := NewServerConfig()
+		cfg.packConfigPath = opt.Web.PackConfig
 
 		s, err := NewServer(cfg)
 		if err != nil {

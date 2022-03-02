@@ -1,0 +1,45 @@
+TablePack: madlibs
+
+TableDef: story
+travel: "There once was a " {!noun()} " that went to " {!place()} ->
+    " they ate " {!food()} " and " {!action()} "."
+greeting: "Hello dear! Are you done " {!action()} " yet? I wish I had a " {!noun()} ->
+    " to feed " {!food()} " to."
+
+TableDef: noun
+"man"
+"woman"
+"baby"
+"dog"
+"cucumber"
+"helicopter"
+"shrimp"
+
+TableDef: place
+"the movies"
+"college"
+"the moon"
+"Atlantis"
+"my Granny's house"
+"a used car dealership"
+
+TableDef: food
+"shrimp"
+"an apple"
+"spaghetti"
+"idly"
+"a reuben"
+"a salad as big as my garage"
+"a dog biscuit"
+"some chocolate"
+"chicken livers"
+
+TableDef: action
+"died"
+"took a nap"
+"had a baby"
+"sold a car"
+"wore a nose ring"
+"crashed their car"
+"flew away into the sky"
+"ran a marathon"

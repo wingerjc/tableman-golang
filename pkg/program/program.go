@@ -91,6 +91,11 @@ func (p *Program) PackCount() int {
 	return len(p.packs)
 }
 
+// SetHistory uses the given RollHistory for rolls.
+func (p *Program) SetHistory(h *RollHistory) {
+	p.ctx.SetHistory(h)
+}
+
 // Eval Evaluates a given Evallable against this program's state (tables+context).
 func (p *Program) Eval(expr Evallable) (*ExpressionResult, error) {
 	return EvaluateExpression(expr, p.ctx.Child())
@@ -222,6 +227,13 @@ type RollHistory struct {
 	accessMu    sync.Mutex
 }
 
+// NewRollHistory creates a new RollHistory object.
+func NewRollHistory() *RollHistory {
+	return &RollHistory{
+		rollResults: make([]string, 0),
+	}
+}
+
 // ClearRolls clears the current roll history.
 func (h *RollHistory) ClearRolls() {
 	h.accessMu.Lock()
@@ -279,6 +291,12 @@ func NewRootExecutionContext() *ExecutionContext {
 // SetRandom sets the RandomSource for this context.
 func (ctx *ExecutionContext) SetRandom(r RandomSource) *ExecutionContext {
 	ctx.rand = r
+	return ctx
+}
+
+// SetHistory assignes a specific roll history object.
+func (ctx *ExecutionContext) SetHistory(h *RollHistory) *ExecutionContext {
+	ctx.RollHistory = h
 	return ctx
 }
 

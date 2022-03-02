@@ -4,13 +4,17 @@ Table based text generation language interpreter.
 
 ## TODO
 
-- Thread safety
-  - Roll history
-  - Deck pulls
+- Web server + api
+  - (DONE) guid-based user context
+  - (Done) session-based root context and roll history. Don't think shared ctx is needed, but history is done.
+  - (DONE) Load packs from file.
+  - (DONE) `/pack` for a list of pack names, load a pack to the session.
+  - `/history` get roll history.
+  - `/tables` get tables in the pack.
+  - (DONE) `/eval` evaluate expression in a pack.
+- Basic Web UI
 - Execution stack limit?
 - roll history max horizon.
-- Web server + api
-  - guid-based user context including root context and roll history.
 - User Docs
 - Go Docs/lint
   - compilation and runtime explanation.
@@ -18,5 +22,4 @@ Table based text generation language interpreter.
   - runtime
   - compile
   - parse
-- Basic Web UI
 - Add float support?

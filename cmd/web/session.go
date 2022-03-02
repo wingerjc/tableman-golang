@@ -80,17 +80,26 @@ func (ss *SessionSet) Eval(sid string, key string, expr program.Evallable) (stri
 	return s.Eval(key, expr)
 }
 
+func (ss *SessionSet) Contains(sid string) bool {
+	ss.RLock()
+	defer ss.RUnlock()
+	_, ok := ss.sessions[sid]
+	return ok
+}
+
 type Session struct {
 	accessMu sync.Mutex
 	accessed time.Time
 	packMu   sync.RWMutex
 	packs    map[string]*program.Program
+	history  *program.RollHistory
 }
 
 func NewSession() *Session {
 	return &Session{
 		accessed: timeNow(),
 		packs:    make(map[string]*program.Program),
+		history:  program.NewRollHistory(),
 	}
 }
 
@@ -109,6 +118,7 @@ func (s *Session) Accessed() time.Time {
 func (s *Session) AddPack(key string, pack *program.Program) {
 	s.Touch()
 	s.packMu.Lock()
+	pack.SetHistory(s.history)
 	defer s.packMu.Unlock()
 	s.packs[key] = pack
 }

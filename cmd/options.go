@@ -17,6 +17,7 @@ func readFlags() *programOptions {
 	flag.StringVar(&result.Web.Addr, "web-addr", ":8080", "The local address to serve from")
 	flag.StringVar(&result.Web.CertFile, "web-certfile", "", "Cert file for TLS, web-keyfile must also be defined")
 	flag.StringVar(&result.Web.KeyFile, "web-keyfile", "", "Keyfile for TLS, web-certfile must also be defined")
+	flag.StringVar(&result.Web.PackConfig, "web-packs", "", "Path to config file for packs to load.")
 
 	flag.Parse()
 	return result
@@ -36,6 +37,7 @@ type WebOptions struct {
 	RunWeb bool
 	Addr   string
 	// TLS settings
-	CertFile string
-	KeyFile  string
+	CertFile   string
+	KeyFile    string
+	PackConfig string
 }
