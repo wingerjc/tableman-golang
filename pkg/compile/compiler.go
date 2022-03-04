@@ -36,7 +36,11 @@ func NewCompiler() (*Compiler, error) {
 
 // CompileFile compiles the file with the passed path.
 func (c *Compiler) CompileFile(fileName string) (*program.Program, error) {
-	code, err := c.loadFile(fileName)
+	absolutePath, err := filepath.Abs(fileName)
+	if err != nil {
+		return nil, err
+	}
+	code, err := c.loadFile(absolutePath)
 	if err != nil {
 		return nil, err
 	}

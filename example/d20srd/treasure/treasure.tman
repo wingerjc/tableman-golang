@@ -1,13 +1,19 @@
-# Source: https://www.d20srd.org/srd/treasure.htm
-# The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
-# ‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
-# and are used according to the terms of the d20 System License version 6.0.
-# A copy of this License can be found at www.wizards.com/d20.
 TablePack: treasure
+Import: f"./goods.tman" As: goods
+Import: f"./coins.tman" As: coins
 
-TableDef: level-01-money
-Default 1-14: "(no money)"
-15-29: { mult(1d6?, 1000) } "cp"
-30-52: { mult(1d8?, 100) } "sp"
-53-95: { mult(2d8?, 10) } "gp"
-96-100: { mult(1d4?, 10) } "pp"
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+
+TableDef: treasure
+{ concat(
+    !coins.by-level(index, @level), ", ",
+    !goods.by-level(index, @level), " "
+  )
+}

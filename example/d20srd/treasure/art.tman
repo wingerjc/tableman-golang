@@ -1,0 +1,83 @@
+TablePack: d20srd.treasure.art
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+TableDef: art-list
+{ @art-count=sub(@art-count, 1);
+    if(lte(@art-count, 0),
+        !art-object(index, 1d100?),
+        concat(!art-list(), ", ", !art-object(index, 1d100?))
+    )
+}
+
+TableDef: art-object
+Default 1-10: { !art-name-1() } " (" { mult( 1d10? , 10) } "gp)"
+11-25: { !art-name-2() } " (" { mult( 3d6? , 10) } "gp)"
+26-40: { !art-name-3() } " (" { mult( 1d6? , 100) } "gp)"
+41-50: { !art-name-4() } " (" { mult( 1d10? , 100) } "gp)"
+51-60: { !art-name-5() } " (" { mult( 2d6? , 100) } "gp)"
+61-70: { !art-name-6() } " (" { mult( 3d6? , 100) } "gp)"
+71-80: { !art-name-7() } " (" { mult( 4d6? , 100) } "gp)"
+81-85: { !art-name-8() } " (" { mult( 5d6? , 100) } "gp)"
+86-90: { !art-name-9() } " (" { mult( 1d4? , 1000) } "gp)"
+91-95: { !art-name-10() } " (" { mult( 1d6? , 1000) } "gp)"
+96-99: { !art-name-11() } " (" { mult( 2d4? , 1000) } "gp)"
+100: { !art-name-12() } " (" { mult( 2d6? , 1000) } "gp)"
+
+TableDef: art-name-1
+"Silver ewer"
+"Carved bone or ivory statuette"
+"Finely wrought small gold bracelet"
+
+TableDef: art-name-2
+"Cloth of gold vestments"
+"Black velvet mask with numerous citrines"
+"Silver chalice with lapis lazuli gems"
+
+TableDef: art-name-3
+"Large well-done wool tapestry"
+"Brass mug with jade inlays"
+
+TableDef: art-name-4
+"Silver comb with moonstones"
+"Silver-plated steel longsword with jet jewel in hilt"
+
+TableDef: art-name-5
+"Carved harp of exotic wood with ivory inlay and zircon gems"
+"Solid gold idol (10 lb.)"
+
+TableDef: art-name-6
+"Gold dragon comb with red garnet eye"
+"Gold and topaz bottle stopper cork"
+"Ceremonial electrum dagger with a star ruby in the pommel"
+
+TableDef: art-name-7
+"Eyepatch with mock eye of sapphire and moonstone"
+"Fire opal pendant on a fine gold chain"
+"Old masterpiece painting"
+
+TableDef: art-name-8
+"Embroidered silk and velvet mantle with numerous moonstones"
+"Sapphire pendant on gold chain"
+
+TableDef: art-name-9
+"Embroidered and bejeweled glove"
+"Jeweled anklet"
+"Gold music box"
+
+TableDef: art-name-10
+"Golden circlet with four aquamarines"
+"A string of small pink pearls (necklace)"
+
+TableDef: art-name-11
+"Jeweled gold crown"
+"Jeweled electrum ring"
+
+TableDef: art-name-12
+"Gold and ruby ring"
+"Gold cup set with emeralds"

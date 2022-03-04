@@ -1,0 +1,34 @@
+TablePack: d20srd.treasure.coins
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+TableDef: by-level
+1: { !level-01-coins(index, 1d100?) }
+2: { !level-02-coins(index, 1d100?) }
+3: { !level-03-coins(index, 1d100?) }
+
+TableDef: level-01-coins
+Default 1-14: "(no coins)"
+15-29: { mult(1d6?, 1000) } "cp"
+30-52: { mult(1d8?, 100) } "sp"
+53-95: { mult(2d8?, 10) } "gp"
+96-100: { mult(1d4?, 10) } "pp"
+
+TableDef: level-02-coins
+Default 1-13: "(no coins)"
+14-23: { mult(1d10?, 1000) } "cp"
+24-43: { mult(2d10?, 100) } "sp"
+44-95: { mult(4d10?, 10) } "gp"
+96-100: { mult(2d8?, 10) } "pp"
+
+TableDef: level-03-coins
+Default 1-11: "(no coins)"
+12-21: { mult(2d10?, 1000) } "cp"
+22-41: { mult(4d8?, 100) } "sp"
+42-95: { mult(1d4?, 100) } "gp"
+96-100: { mult(1d10?, 10) } "pp"
