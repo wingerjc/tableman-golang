@@ -18,6 +18,7 @@ func readFlags() *programOptions {
 	flag.StringVar(&result.Web.CertFile, "web-certfile", "", "Cert file for TLS, web-keyfile must also be defined")
 	flag.StringVar(&result.Web.KeyFile, "web-keyfile", "", "Keyfile for TLS, web-certfile must also be defined")
 	flag.StringVar(&result.Web.PackConfig, "web-packs", "", "Path to config file for packs to load.")
+	flag.StringVar(&result.Web.StaticPath, "web-static-path", "", "Local path to static files to serve.")
 
 	flag.Parse()
 	return result
@@ -37,7 +38,10 @@ type WebOptions struct {
 	RunWeb bool
 	Addr   string
 	// TLS settings
-	CertFile   string
-	KeyFile    string
+	CertFile string
+	KeyFile  string
+	// Files to serve.
 	PackConfig string
+	// Local path for static file serving.
+	StaticPath string
 }

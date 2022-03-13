@@ -11,6 +11,7 @@ func main() {
 	if opt.Web.RunWeb {
 		cfg := NewServerConfig()
 		cfg.packConfigPath = opt.Web.PackConfig
+		cfg.staticFilePath = opt.Web.StaticPath
 
 		s, err := NewServer(cfg)
 		if err != nil {

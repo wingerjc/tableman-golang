@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="script/materialize.min.css"  media="screen,projection"/>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  </head>
+
+  <body>
+    <div class="container">
+        <nav>
+            <div class="nav-wrapper">
+                <a href="#" class="brand-logo" style="padding-left: 25px;">Tableman</a>
+                <a href="#" data-target="mobile-menu" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li class="active"><a href="#">Roller</a></li>
+                    <li><a href="/docs">Docs</a></li>
+                    <li><a href="/about.html">About</a></li>
+                </ul>
+            </div>
+        </nav>
+        <ul class="sidenav no-autoinit" id="mobile-menu" style="padding-top: 20px;">
+            <li class="active"><a href="#">Roller</a></li>
+            <li><a href="/docs">Docs</a></li>
+            <li><a href="/about.html">About</a></li>
+        </ul>
+        <div class="row">
+            <div class="input-field col s12 m4 l3">
+                <select>
+                    <option value="" disabled selected>Select Pack</option>
+                    <option value="d20srd-reasure">d20 Treasure</option>
+                    <option value="haiku">Haiku Maker</option>
+                </select>
+            </div>
+            <div class="col s12 m8 l9">
+                <form onsubmit="submitExpression()" class="valign-wrapper">
+                    <div class="input-field" style="width: 100%; padding-right: 10px;">
+                        <input id="expr_query" type="text" class="validate">
+                        <label for="expr_query">Table Query Expression</label>
+                    </div>
+                    <input type="submit" class="btn right" value="Run" style="padding-right: 10px;" />
+                </form>    
+            </div>
+        </div>
+        <div class="row">
+            <ul class="collapsible expandable collection with-header" id="result-list">
+                <li class="collection-header" style="height: 60px;">
+                    <span style="font-weight: bolder; font-size: larger;">Results</span>
+                    <button class="btn right" onclick="clearResults()">Clear</button>
+                </li>
+                <li>
+                    <div class="collapsible-header">100gp, 50<span class="badge red right white-text">Error</span></div>
+                    <div class="collapsible-body"><code>!table()</code></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!--JavaScript at end of body for optimized loading-->
+    <script type="text/javascript" src="script/materialize.min.js"></script>
+    <script>
+        var closable = [];
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.sidenav');
+            var instances = M.Sidenav.init(elems, null);
+            if(instances) {
+                closable = closable.concat(instances);
+            }
+            M.AutoInit();
+            elems = document.querySelectorAll('.collapsible');
+            instances = M.Collapsible.init(elems, null);
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === "Escape") {
+                closable.map(function(c){ c.Close(); })
+            }
+        });
+
+        count = 0;
+
+        clearResults = function() {
+            console.log("clearing");
+            list = document.getElementById("result-list");
+
+            while(list.lastElementChild.className != 'collection-header') {
+                list.lastElementChild.remove();
+            }
+        }
+
+        submitExpression = function() {
+            console.log("submitted");
+            list = document.getElementById("result-list");
+
+            next = document.createElement('li');
+            header = document.createElement('div');
+            header.className = "collapsible-header";
+            header.append("45cp, 1 Diamond (9000gp) -> " + count++);
+            next.append(header);
+            txt = document.createElement('span');
+            txt.append("@level=1; !table()");
+            liBody = document.createElement('li');
+            liBody.className = "collapsible-body";
+            liBody.append(txt);
+            next.append(liBody);
+
+            list.firstElementChild.after(next);
+        }
+    </script>
+  </body>
+</html>
+      

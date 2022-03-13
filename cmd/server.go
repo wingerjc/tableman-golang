@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/wingerjc/tableman-golang/cmd/web"
@@ -21,6 +22,7 @@ type ServerConfig struct {
 	CertFile       string
 	KeyFile        string
 	packConfigPath string
+	staticFilePath string
 }
 
 func NewServerConfig() *ServerConfig {
@@ -94,6 +96,13 @@ func (s *Server) register() {
 	mux.HandleFunc("/session", s.handleSession())
 	mux.HandleFunc("/pack", s.handlePacks())
 	mux.HandleFunc("/eval", s.handleEval())
+
+	if len(s.cfg.staticFilePath) > 0 {
+		pathStr, _ := filepath.Abs(s.cfg.staticFilePath)
+		fmt.Printf("Serving static files from %s\n", pathStr)
+		fs := http.FileServer(http.Dir(pathStr))
+		mux.Handle("/site/", http.StripPrefix("/site/", fs))
+	}
 
 	s.server.Handler = mux
 }
