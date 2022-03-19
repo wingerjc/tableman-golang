@@ -37,12 +37,12 @@
                 </select>
             </div>
             <div class="col s12 m8 l9">
-                <form onsubmit="submitExpression()" class="valign-wrapper">
+                <form id="expr-form" class="valign-wrapper">
                     <div class="input-field" style="width: 100%; padding-right: 10px;">
                         <input id="expr_query" type="text" class="validate">
                         <label for="expr_query">Table Query Expression</label>
                     </div>
-                    <input type="submit" class="btn right" value="Run" style="padding-right: 10px;" />
+                    <input type="submit" class="btn right" id="run-btn" value="Run" style="padding-right: 10px;" />
                 </form>    
             </div>
         </div>
@@ -91,7 +91,7 @@
             }
         }
 
-        submitExpression = function() {
+        submitExpression = function(e) {
             console.log("submitted");
             list = document.getElementById("result-list");
 
@@ -108,7 +108,10 @@
             next.append(liBody);
 
             list.firstElementChild.after(next);
+            e.preventDefault();
         }
+
+        document.getElementById("expr-form").addEventListener("submit", submitExpression, true);
     </script>
   </body>
 </html>
