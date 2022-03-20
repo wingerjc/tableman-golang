@@ -12,6 +12,18 @@ type LoadPackDTO struct {
 	Pack string `json:"pack"`
 }
 
+type PackDefDTO struct {
+	Name  string `json:"id"`
+	Title string `json:"title"`
+}
+
+func NewPackDefDTO(name string, title string) *PackDefDTO {
+	return &PackDefDTO{
+		Name:  name,
+		Title: title,
+	}
+}
+
 type EvalDTO struct {
 	Expr string `json:"expression"`
 	Pack string `json:"pack"`

@@ -5,6 +5,7 @@ type PackWebConfig struct {
 }
 
 type PackEntry struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
+	Name  string `json:"name"`
+	Title string `json:"title"`
+	Path  string `json:"path"`
 }

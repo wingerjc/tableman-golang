@@ -32,11 +32,12 @@ func NewServerConfig() *ServerConfig {
 }
 
 type Server struct {
-	cfg      *ServerConfig
-	server   *http.Server
-	packs    map[string]*program.Program
-	compiler *compiler.Compiler
-	sessions *web.SessionSet
+	cfg         *ServerConfig
+	server      *http.Server
+	packs       map[string]*program.Program
+	loadedPacks []*web.PackEntry
+	compiler    *compiler.Compiler
+	sessions    *web.SessionSet
 }
 
 func NewServer(cfg *ServerConfig) (*Server, error) {
@@ -70,6 +71,7 @@ func NewServer(cfg *ServerConfig) (*Server, error) {
 }
 
 func (s *Server) load(packs *web.PackWebConfig) error {
+	s.loadedPacks = make([]*web.PackEntry, 0)
 	if s.compiler == nil {
 		comp, err := compiler.NewCompiler()
 		s.compiler = comp
@@ -84,6 +86,7 @@ func (s *Server) load(packs *web.PackWebConfig) error {
 			return err
 		}
 		s.packs[p.Name] = prog
+		s.loadedPacks = append(s.loadedPacks, p)
 	}
 
 	return nil
@@ -136,9 +139,9 @@ func (s *Server) handlePacks() func(http.ResponseWriter, *http.Request) {
 		switch r.Method {
 		// GET returns a list of all packs
 		case http.MethodGet:
-			result := make([]string, 0)
-			for k, _ := range s.packs {
-				result = append(result, k)
+			result := make([]*web.PackDefDTO, 0)
+			for _, k := range s.loadedPacks {
+				result = append(result, web.NewPackDefDTO(k.Name, k.Title))
 			}
 			jsonRes, err := json.Marshal(result)
 			if err != nil {

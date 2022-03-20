@@ -1,8 +1,13 @@
 {
   "packs": [
-    { "name": "mad-libs", "path": "example/madlibs/mad.tman" },
+    { 
+      "name": "mad-libs",
+      "title": "Mad Libs",
+      "path": "example/madlibs/mad.tman"
+    },
     {
       "name": "d20srd-treasure",
+      "title": "d20 Treasure",
       "path": "example/d20srd/treasure/treasure.tman"
     }
   ]
