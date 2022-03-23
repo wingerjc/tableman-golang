@@ -1,5 +1,6 @@
 module github.com/wingerjc/tableman-golang
 
+// +heroku goVersion 1.17
 go 1.17
 
 require (
