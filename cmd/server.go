@@ -41,10 +41,16 @@ type Server struct {
 }
 
 func NewServer(cfg *ServerConfig) (*Server, error) {
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		port = cfg.Port
+	} else {
+		port = ":" + port
+	}
 	result := &Server{
 		cfg: cfg,
 		server: &http.Server{
-			Addr: cfg.Port,
+			Addr: port,
 		},
 		sessions: web.NewSessionSet(5000, 2*time.Hour),
 		packs:    make(map[string]*program.Program),
