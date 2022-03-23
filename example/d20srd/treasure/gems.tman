@@ -1,0 +1,103 @@
+TablePack: d20srd.treasure.gems
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+TableDef: gem-list
+{ @gem-count=sub(@gem-count, 1);
+    if(lte(0, @gem-count),
+        !gem(index, 1d100?),
+        concat(!gem-count(), ", ", !gem(index, 1d100?))
+    )
+}
+
+TableDef: gem
+Default 1-25: { !gem-name-1() } " (" { 4d4? } "gp)"
+26-50: { !gem-name-2() } " (" { mult(2d4?, 10) } "gp)"
+51-70: { !gem-name-3() } " (" { mult(4d4?, 10) } "gp)"
+71-90: { !gem-name-4() } " (" { mult(2d4?, 100) } "gp)"
+91-99: { !gem-name-5() } " (" { mult(4d4?, 100) } "gp)"
+100: { !gem-name-6() } " (" { mult(2d4?, 1000) } "gp)"
+
+TableDef: gem-name-1
+"Banded agate"
+"Eye agate"
+"Moss agate"
+"Azurite"
+"Blue quartz"
+"Hematite"
+"Lapis lazuli"
+"Malachite"
+"Obsidian"
+"Rhodochrosite"
+"Tiger eye turquoise"
+"Freshwater (irregular) pearl"
+
+TableDef: gem-name-2
+"Bloodstone"
+"Carnelian"
+"Chalcedony"
+"Chrysoprase"
+"Citrine"
+"Iolite, jasper"
+"Moonstone"
+"Onyx"
+"Peridot"
+"Rock crystal (clear quartz)"
+"Sard"
+"Sardonyx"
+"Rose quartz"
+"Smoky quartz"
+"Star rose quartz"
+"Zircon"
+
+TableDef: gem-name-3
+"Amber"
+"Amethyst"
+"Chrysoberyl"
+"Coral"
+"Red garnet"
+"Brown-green garnet"
+"Jade"
+"Jet"
+"White pearl"
+"Golden pearl"
+"Pink pearl"
+"Silver pearl"
+"Red spinel"
+"Red-brown spinel"
+"Deep green spinel"
+"Tourmaline"
+
+TableDef: gem-name-4
+"Alexandrite"
+"Aquamarine"
+"Violet garnet"
+"Black pearl"
+"Deep blue spinel"
+"Golden yellow topaz"
+
+TableDef: gem-name-5
+"Emerald"
+"White opal"
+"Black opal"
+"Fire opal"
+"Blue sapphire"
+"Fiery yellow corundum"
+"Rich purple corundum"
+"Blue star sapphire"
+"Black star sapphire"
+"Star ruby"
+
+TableDef: gem-name-6
+"Clearest bright green emerald"
+"Blue-white diamond"
+"Canary diamond"
+"Pink diamond"
+"Brown diamond"
+"Blue diamond"
+"Jacinth"

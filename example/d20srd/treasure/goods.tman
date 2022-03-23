@@ -1,0 +1,60 @@
+TablePack: d20srd.treasure.goods
+Import: f"./art.tman" As: art
+Import: f"./gems.tman" As: gems
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+TableDef: by-level
+1: { !level-01-goods(index, 1d100?) }
+2: { !level-02-goods(index, 1d100?) }
+3: { !level-03-goods(index, 1d100?) }
+4: { !level-04-goods(index, 1d100?) }
+5: { !level-05-goods(index, 1d100?) }
+6: { !level-06-goods(index, 1d100?) }
+7: { !level-07-goods(index, 1d100?) }
+8: { !level-08-goods(index, 1d100?) }
+
+TableDef: level-01-goods
+Default 1-90: "(no goods)"
+91-95: { @gem-count=1; !gems.gem-list() }
+96-100: { @art-count=1; !art.art-list() }
+
+TableDef: level-02-goods
+Default 1-81: "(no goods)"
+82-95: { @gem-count=1d3?; !gems.gem-list() }
+96-100: { @art-count=1d3?; !art.art-list() }
+
+TableDef: level-03-goods
+Default 1-77: "(no goods)"
+78-95: { @gem-count=1d3?; !gems.gem-list() }
+96-100: { @art-count=1d3?; !art.art-list() }
+
+TableDef: level-04-goods
+Default 1-70: "(no goods)"
+71-95: { @gem-count=1d4?; !gems.gem-list() }
+96-100: { @art-count=1d3?; !art.art-list() }
+
+TableDef: level-05-goods
+Default 1-60: "(no goods)"
+61-95: { @gem-count=1; !gems.gem-list() }
+96-100: { @art-count=1; !art.art-list() }
+
+TableDef: level-06-goods
+Default 1-56: "(no goods)"
+56-92: { @gem-count=1d4?; !gems.gem-list() }
+93-100: { @art-count=1d4?; !art.art-list() }
+
+TableDef: level-07-goods
+Default 1-48: "(no goods)"
+49-88: { @gem-count=1d4?; !gems.gem-list() }
+89-100: { @art-count=1d4?; !art.art-list() }
+
+TableDef: level-08-goods
+Default 1-45: "(no goods)"
+46-85: { @gem-count=1d6?; !gems.gem-list() }
+86-100: { @art-count=1d4?; !art.art-list() }

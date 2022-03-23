@@ -1,0 +1,19 @@
+TablePack: treasure
+Import: f"./goods.tman" As: goods
+Import: f"./coins.tman" As: coins
+
+
+TableDef: License
+"Source: https://www.d20srd.org/srd/treasure.htm
+The text in this file is Open Game Content, and is licensed for public use under the terms of the Open Game License v1.0a.
+‘d20 System’ and the ‘d20 System’ logo are trademarks of Wizards of the Coast, Inc.
+and are used according to the terms of the d20 System License version 6.0.
+A copy of this License can be found at www.wizards.com/d20."
+
+
+TableDef: treasure
+{ concat(
+    !coins.by-level(index, @level), ", ",
+    !goods.by-level(index, @level), " "
+  )
+}

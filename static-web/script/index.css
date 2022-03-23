@@ -1,0 +1,9 @@
+
+
+.form-error {
+    background: red;
+}
+
+.transition-error {
+    transition: background 0.8s linear;
+}
